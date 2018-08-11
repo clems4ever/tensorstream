@@ -8,8 +8,12 @@ setup(
   long_description=open('README').read(),
   install_requires=[
     "tensorflow == 1.5.0",
+    "pandas==0.23.4"
   ],
   extras_require={
-    'dev': ['pytest']
+    'dev': [
+      'pytest',
+      'pyexcel-ods==0.5.3'
+    ]
   }
 )

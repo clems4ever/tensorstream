@@ -1,0 +1,46 @@
+import numpy as np
+import tensorflow as tf
+
+from tensorstream.streamable import Stream, stream_to_tensor
+from tensorstream.operators.variation import Variation
+from tensorstream.operators.tests import TestCase
+
+class VariationSpec(TestCase):
+  def setUp(self):
+    self.sheets = self.read_ods(self.from_test_res('variation.ods'))
+
+  def test_single_dim(self):
+    single_dim_ts = self.sheets['single_dim']
+    prices = tf.placeholder(tf.float32)
+    variation1 = Variation(1)
+    variation5 = Variation(5)
+
+    prices_stream = Stream(prices)
+    variation1_ts, _ = stream_to_tensor(variation1(prices_stream))
+    variation5_ts, _ = stream_to_tensor(variation5(prices_stream))
+    
+    with tf.Session() as sess:
+      output = sess.run([variation1_ts, variation5_ts], {
+        prices: single_dim_ts['Prices']
+      })
+
+    np.testing.assert_almost_equal(output[0],
+      single_dim_ts['Variation 1d'].values, decimal=4)
+    np.testing.assert_almost_equal(output[1],
+      single_dim_ts['Variation 5d'].values, decimal=4)
+
+  def test_multi_dim(self):
+    single_dim_ts = self.sheets['multi_dim']
+    prices_ts = single_dim_ts[['Prices 0', 'Prices 1']]
+    var_ts = single_dim_ts[['Variation 1d 0', 'Variation 1d 1']]
+
+    prices = tf.placeholder(tf.float32, shape=[None, 2])
+    prices_stream = Stream(prices)
+    variation1 = Variation(1, shape=(2,))
+    variation1_ts, _ = stream_to_tensor(variation1(prices_stream))
+    
+    with tf.Session() as sess:
+      output = sess.run(variation1_ts, { prices: prices_ts })
+
+    np.testing.assert_almost_equal(output, var_ts.values, decimal=4)
+
