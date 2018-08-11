@@ -17,5 +17,5 @@ class AverageTrueRange(Streamable):
     lcp = tf.abs(low_price - last_close)
     tr = tf.reduce_max(tf.stack([hl, hcp, lcp]))
 
-    atr, new_rma_state = self.rma(tr, state=last_rma_state)
+    atr, new_rma_state = self.rma(tr, state=last_rma_state, streamable=False)
     return atr, (close_price, new_rma_state)

@@ -1,9 +1,6 @@
 import tensorflow as tf
 import functools
 
-def stream_to_tensor(streams):
-  return traverse(streams, [streams], lambda x: x.to_tensor() if isinstance(x, Stream) else x)
-
 def traverse(obj1, objs, apply_fn):
   if isinstance(obj1, dict):
     def fn(kv):
@@ -35,20 +32,9 @@ class Streamable:
     self.shape = shape
     self.initial_state = initial_state
 
-  def wrap(self, data):
-    if data == ():
-      return [()]
-    return data if isinstance(data, (list, tuple)) else [data]
-
-  def has_stream_inputs(self, inputs):
-    flattened_args = flatten(inputs)
-    stream_args = list(filter(lambda x: isinstance(x, Stream), flattened_args))
-    return len(stream_args) > 0
-
-  def call_streamed(self, *inputs, state):
-    inputs_tensors = traverse(inputs, [inputs], lambda x: x.to_tensor())
-
-    inputs_sizes = list(map(lambda x: tf.shape(x)[0], flatten(inputs_tensors)))
+  def call_streamed(self, inputs_tensors, state):
+    inputs_sizes = tuple(map(lambda x: tf.shape(x)[0], flatten(inputs_tensors)))
+    print("SIZES", inputs_sizes)
     size = inputs_sizes[0]
     same_size = functools.reduce(lambda acc, x: tf.logical_and(acc, tf.equal(x, size)),
       inputs_sizes, tf.constant(True))
@@ -64,7 +50,7 @@ class Streamable:
       if isinstance(loop_inputs, (tuple, list)):
         current_inputs = inputs_i
       else:
-        current_inputs = (current_inputs,)
+        current_inputs = (inputs_i,)
 
       if isinstance(loop_state, (tuple, list)):
         previous_state = loop_state
@@ -85,29 +71,27 @@ class Streamable:
     with tf.control_dependencies([assert_same_size]):
       i_f, inputs_f, state_f, outputs_f = tf.while_loop(cond, loop,
         loop_vars=[i0, inputs_tensors, state, outputs], name="stream_loop")
-    outputs = traverse(outputs_f, [outputs_f], lambda o: Stream(o.stack()))
+    outputs = traverse(outputs_f, [outputs_f], lambda o: o.stack())
 
     return (outputs, state_f)
 
-  def __call__(self, *inputs, state=None):
+  def __call__(self, inputs, state=None, streamable=True):
     if state is None:
       state = self.initial_state
 
-    if self.has_stream_inputs(inputs):
-      return self.call_streamed(*inputs, state=state)
+    if streamable:
+      return self.call_streamed(inputs, state)
     else:
       if isinstance(state, (tuple, list)):
-        state = state
+        state_ = state
       else:
-        state = (state,)
-      return self.step(*inputs, *state) 
+        state_ = (state,)
+      if isinstance(inputs, (tuple, list)):
+        inputs_ = inputs
+      else:
+        inputs_ = (inputs,)
+      return self.step(*inputs_, *state_) 
 
   def step(self, *inputs):
     raise Exception("Not implemented")
 
-class Stream:
-  def __init__(self, tensor):
-    self.tensor = tensor
-
-  def to_tensor(self):
-    return self.tensor

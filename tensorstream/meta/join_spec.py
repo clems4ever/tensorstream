@@ -3,7 +3,6 @@ import tensorflow as tf
 import pandas as pd
 
 from tensorstream.meta import Join, Fork
-from tensorstream.streamable import Stream, stream_to_tensor
 from tensorstream.tests import TestCase
 from tensorstream.trading.moving_average import SimpleMovingAverage, ExponentialMovingAverage
 
@@ -17,12 +16,7 @@ class JoinSpec(TestCase):
     values_sma = tf.placeholder(tf.float32)
     values_ema = tf.placeholder(tf.float32)
 
-    join_ts, _ = stream_to_tensor(
-      join(
-        Stream(values_sma),
-        Stream(values_ema)
-      )
-    )
+    join_ts, _ = join(inputs=(values_sma, values_ema))
 
     with tf.Session() as sess:
       output = sess.run(join_ts, {
@@ -40,12 +34,12 @@ class JoinSpec(TestCase):
     values_sma = tf.placeholder(tf.float32)
     values_ema = tf.placeholder(tf.float32)
 
-    join_ts, _ = stream_to_tensor(join(Stream(values_sma), Stream(values_ema)))
+    join_ts, _ = join(inputs=(values_sma, values_ema))
 
     with tf.Session() as sess:
       output = sess.run(join_ts, {
-        values_sma: self.input_ts['Value'],
-        values_ema: self.input_ts['Value']
+        values_sma: self.input_ts['Value'].values,
+        values_ema: self.input_ts['Value'].values
       })
 
     np.testing.assert_almost_equal(output[0][0],
@@ -60,11 +54,11 @@ class JoinSpec(TestCase):
     values_sma = tf.placeholder(tf.float32, shape=(None, 2))
     values_ema = tf.placeholder(tf.float32)
 
-    join_ts, _ = stream_to_tensor(join(Stream(values_sma), Stream(values_ema)))
+    join_ts, _ = join(inputs=(values_sma, values_ema))
 
     df = self.input_ts[['Value']].copy()
     df['Value2'] = df['Value']
-   
+
     with tf.Session() as sess:
       output = sess.run(join_ts, {
         values_sma: df.values,

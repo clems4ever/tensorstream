@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-from tensorstream.streamable import Stream, stream_to_tensor
 from tensorstream.trading.returns import Returns
 from tensorstream.tests import TestCase
 
@@ -15,9 +14,8 @@ class VariationSpec(TestCase):
     variation1 = Returns(1)
     variation5 = Returns(5)
 
-    prices_stream = Stream(prices)
-    variation1_ts, _ = stream_to_tensor(variation1(prices_stream))
-    variation5_ts, _ = stream_to_tensor(variation5(prices_stream))
+    variation1_ts, _ = variation1(prices)
+    variation5_ts, _ = variation5(prices)
     
     with tf.Session() as sess:
       output = sess.run([variation1_ts, variation5_ts], {
@@ -35,9 +33,8 @@ class VariationSpec(TestCase):
     var_ts = single_dim_ts[['Variation 1d 0', 'Variation 1d 1']]
 
     prices = tf.placeholder(tf.float32, shape=[None, 2])
-    prices_stream = Stream(prices)
     variation1 = Returns(1, shape=(2,))
-    variation1_ts, _ = stream_to_tensor(variation1(prices_stream))
+    variation1_ts, _ = variation1(prices)
     
     with tf.Session() as sess:
       output = sess.run(variation1_ts, { prices: prices_ts })

@@ -25,7 +25,11 @@ class RiskRatioEvaluator(Streamable):
       previous_total_bets,
       previous_volatility_state): 
       
-      volatility, next_volatility_state = self.volatility_op(close, state=previous_volatility_state)
+      volatility, next_volatility_state = self.volatility_op(
+        inputs=close,
+        state=previous_volatility_state,
+        streamable=False
+      )
       
       is_nan = tf.is_nan(previous_stop_price)
       stop_hit = tf.logical_and(

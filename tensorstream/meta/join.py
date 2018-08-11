@@ -19,13 +19,8 @@ class Join(Streamable):
     states = inputs_and_states[op_len:]
 
     for i in range(op_len):
-      if isinstance(inputs[i], tuple):
-        x_in = inputs[i]
-      else:
-        x_in = (inputs[i],)
-
-      operator = self.operators[i]
-      output, next_state = operator(*x_in, state=states[i])
+      output, next_state = self.operators[i](
+        inputs[i], states[i], streamable=False)
       outputs.append(output)
       next_states.append(next_state)
     return tuple(outputs), tuple(next_states)

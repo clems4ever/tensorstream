@@ -1,7 +1,6 @@
 import tensorflow as tf
 import numpy as np
 
-from tensorstream.streamable import stream_to_tensor, Stream
 from tensorstream.tests import TestCase
 from tensorstream.trading.sharpe_ratio import SharpeRatio
 
@@ -15,7 +14,7 @@ class SharpeRatioSpec(TestCase):
     sr10 = SharpeRatio(10)
     prices = tf.placeholder(tf.float32)
     risk_free_rates = tf.placeholder(tf.float32)
-    sr10_ts, _ = stream_to_tensor(sr10(Stream(prices), Stream(risk_free_rates)))
+    sr10_ts, _ = sr10(inputs=(prices, risk_free_rates))
     
     with tf.Session() as sess:
       output = sess.run(sr10_ts, {
@@ -37,7 +36,7 @@ class SharpeRatioSpec(TestCase):
     sr10 = SharpeRatio(10, dtype=tf.float32, shape=(2,))
     prices = tf.placeholder(tf.float32, shape=[None, 2])
     risk_free_rates = tf.placeholder(tf.float32, shape=[None, 2])
-    sr10_ts, _ = stream_to_tensor(sr10(Stream(prices), Stream(risk_free_rates)))
+    sr10_ts, _ = sr10(inputs=(prices, risk_free_rates))
 
     prices_ts = s[['Return 0', 'Return 1']]
     rfr_ts = s[['Risk free rate 0', 'Risk free rate 1']]

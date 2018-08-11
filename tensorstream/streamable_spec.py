@@ -1,7 +1,7 @@
 import unittest
 import tensorflow as tf
 
-from tensorstream.streamable import Streamable, Stream, flatten, stream_to_tensor
+from tensorstream.streamable import Streamable, flatten
 
 class Simple(Streamable):
   def __init__(self):
@@ -81,7 +81,7 @@ class NestedOperator(Streamable):
     self.initial_state = self.with_state.initial_state
 
   def step(self, value, prev_state):
-    new_value, next_state = self.with_state(value, state=prev_state)
+    new_value, next_state = self.with_state(value, prev_state, streamable=False)
     return new_value + 1, next_state
 
 class StreamableSpec(unittest.TestCase):
@@ -93,7 +93,7 @@ class StreamableSpec(unittest.TestCase):
   def test_streamable_step(self):
     sim = Simple()
     x = tf.constant(4)
-    y, _ = sim(x)
+    y, _ = sim(x, streamable=False)
 
     with tf.Session() as sess:
       output = sess.run(y)
@@ -102,8 +102,8 @@ class StreamableSpec(unittest.TestCase):
   def test_streamable_simple_value(self):
     sim = Simple()
 
-    x = Stream(tf.constant([0, 1, 2, 3, 4, 5]))
-    y, _ = stream_to_tensor(sim(x))
+    x = tf.constant([0, 1, 2, 3, 4, 5])
+    y, _ = sim(x)
 
     with tf.Session() as sess:
       output = sess.run(y)
@@ -111,9 +111,9 @@ class StreamableSpec(unittest.TestCase):
     self.assertEqual(output.tolist(), [0, 2, 4, 6, 8, 10])
 
   def test_streamable_multidim(self):
-    op = MultiDim()
-    x = Stream(tf.constant([[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5]]))
-    y, _ = stream_to_tensor(op(x))
+    multi_dim = MultiDim()
+    x = tf.constant([[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5]])
+    y, _ = multi_dim(x)
 
     with tf.Session() as sess:
       output = sess.run(y)
@@ -122,9 +122,9 @@ class StreamableSpec(unittest.TestCase):
 
   def test_streamable_tuple(self):
     op = Tuple()
-    x = Stream(tf.constant([0, 1, 2, 3, 4, 5]))
-    y = Stream(tf.constant([1, 2, 3, 4, 5, 6]))
-    (z0, z1), _ = stream_to_tensor(op(x, y))
+    x = tf.constant([0, 1, 2, 3, 4, 5])
+    y = tf.constant([1, 2, 3, 4, 5, 6])
+    (z0, z1), _ = op(inputs=(x, y))
 
     with tf.Session() as sess:
       output = sess.run([z0, z1])
@@ -133,10 +133,10 @@ class StreamableSpec(unittest.TestCase):
     self.assertEqual(output[1].tolist(), [3, 6, 9, 12, 15, 18])
 
   def test_streamable_list(self):
-    op = List()
-    x = Stream(tf.constant([0, 1, 2, 3, 4, 5]))
-    y = Stream(tf.constant([1, 2, 3, 4, 5, 6]))
-    z, _ = stream_to_tensor(op(x, y))
+    op_list = List()
+    x = tf.constant([0, 1, 2, 3, 4, 5])
+    y = tf.constant([1, 2, 3, 4, 5, 6])
+    z, _ = op_list(inputs=(x, y))
 
     with tf.Session() as sess:
       output = sess.run(z)
@@ -146,27 +146,25 @@ class StreamableSpec(unittest.TestCase):
 
   def test_streamable_dict(self):
     op = Dict()
-    x = Stream(tf.constant([0, 1, 2, 3, 4, 5]))
-    y = Stream(tf.constant([1, 2, 3, 4, 5, 6]))
+    x = tf.constant([0, 1, 2, 3, 4, 5])
+    y = tf.constant([1, 2, 3, 4, 5, 6])
     t, _ = op({'val1': x, 'val2': y})
-    z = stream_to_tensor(t)
 
     with tf.Session() as sess:
-      output = sess.run(z)
+      output = sess.run(t)
 
     self.assertEqual(output['val1'].tolist(), [0, 2, 4, 6, 8, 10])
     self.assertEqual(output['val2'].tolist(), [3, 6, 9, 12, 15, 18])
 
   def test_streamable_nested(self):
     op = Nested()
-    x = Stream(tf.constant([0, 1, 2, 3, 4, 5]))
-    y = Stream(tf.constant([1, 2, 3, 4, 5, 6]))
-    z = Stream(tf.constant([2, 3, 4, 5, 6, 7]))
+    x = tf.constant([0, 1, 2, 3, 4, 5])
+    y = tf.constant([1, 2, 3, 4, 5, 6])
+    z = tf.constant([2, 3, 4, 5, 6, 7])
     t, _ = op({'val1': (x, {'a': [y]}), 'val2': z})
-    v = stream_to_tensor(t)
 
     with tf.Session() as sess:
-      output = sess.run(v)
+      output = sess.run(t)
 
     self.assertEqual(output['val1'][0].tolist(), [0, 2, 4, 6, 8, 10])
     self.assertEqual(output['val1'][1]['a'][0].tolist(), [3, 6, 9, 12, 15, 18])
@@ -174,19 +172,19 @@ class StreamableSpec(unittest.TestCase):
 
   def test_streamable_bad_input_sizes(self):
     op = Tuple()
-    x = Stream(tf.constant([0, 1, 2, 3, 4, 5]))
-    y = Stream(tf.constant([1, 2, 3, 4, 5, 6, 7]))
-    z, _ = stream_to_tensor(op(x, y))
+    x = tf.constant([0, 1, 2, 3, 4, 5])
+    y = tf.constant([1, 2, 3, 4, 5, 6, 7])
+    z, _ = op(inputs=(x, y))
 
     with self.assertRaises(tf.errors.InvalidArgumentError) as context:
       with tf.Session() as sess:
         output = sess.run(z)
 
   def test_streamable_with_provided_state(self):
-    op = WithState()
-    x = Stream(tf.constant([0, 1, 2, 3, 4, 5]))
+    op_with_state = WithState()
+    x = tf.constant([0, 1, 2, 3, 4, 5])
     i = tf.constant(5)
-    t, j = stream_to_tensor(op(x, state=i))
+    t, j = op_with_state(x, state=i)
 
     with tf.Session() as sess:
       output = sess.run([t, j])
@@ -196,8 +194,8 @@ class StreamableSpec(unittest.TestCase):
 
   def test_streamable_with_not_provided_state(self):
     op = WithState()
-    x = Stream(tf.constant([0, 1, 2, 3, 4, 5]))
-    t, j = stream_to_tensor(op(x))
+    x = tf.constant([0, 1, 2, 3, 4, 5])
+    t, j = op(x)
 
     with tf.Session() as sess:
       output = sess.run([t, j])
@@ -207,10 +205,10 @@ class StreamableSpec(unittest.TestCase):
 
   def test_streamable_complex(self):
     op = Complex()
-    x = Stream(tf.constant([0, 1, 2, 3, 4, 5]))
-    y = Stream(tf.constant([0, 1, 2, 3, 4, 5]))
+    x = tf.constant([0, 1, 2, 3, 4, 5])
+    y = tf.constant([0, 1, 2, 3, 4, 5])
     
-    z = stream_to_tensor(op(x, y, state=op.initial_state))
+    z = op(inputs=(x, y), state=op.initial_state)
 
     with tf.Session() as sess:
       output, state = sess.run(z)
@@ -223,9 +221,8 @@ class StreamableSpec(unittest.TestCase):
 
   def test_streamable_nested_operator(self):
     op = NestedOperator()
-    x = Stream(tf.constant([0, 1, 2, 3, 4, 5]))
-    
-    z, s = stream_to_tensor(op(x))
+    x = tf.constant([0, 1, 2, 3, 4, 5])
+    z, s = op(x)
 
     with tf.Session() as sess:
       output = sess.run([z, s])

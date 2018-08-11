@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-from tensorstream.streamable import Stream, stream_to_tensor
 from tensorstream.common.lag import Lag
 from tensorstream.tests import TestCase
 
@@ -12,8 +11,7 @@ class LagSpec(TestCase):
 
   def test_lag(self):
     values = tf.placeholder(tf.float32)
-    values_stream = Stream(values)
-    buffer_ts, _ = stream_to_tensor(Lag(3)(values_stream))
+    buffer_ts, _ = Lag(3)(values)
 
     with tf.Session() as sess:
       output = sess.run(buffer_ts, { values: self.input_ts['Value'] })

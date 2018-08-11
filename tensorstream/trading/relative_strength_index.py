@@ -63,7 +63,7 @@ class RelativeStrengthIndex(Streamable):
       tf.less(iteration, self.period): warmup,
     }, exclusive=True, default=compute_default_rsi)
 
-    _, buffer_state = self.buffer(value, state=buffer_state)
+    _, buffer_state = self.buffer(value, state=buffer_state, streamable=False)
 
     return rsi, (
       buffer_state,

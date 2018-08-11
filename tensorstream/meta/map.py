@@ -33,6 +33,6 @@ class Map(Streamable):
     state_dtype = map_fn(previous_states, [previous_states], lambda x: x.dtype) 
     output_dtype = self.operator.dtype
     def apply_op(inputs_states):
-      return self.operator(*inputs_states[0], state=inputs_states[1])
+      return self.operator(inputs_states[0], state=inputs_states[1], streamable=False)
     outputs, next_states = tf.map_fn(apply_op, (inputs, previous_states), dtype=(output_dtype, state_dtype))
     return outputs, next_states

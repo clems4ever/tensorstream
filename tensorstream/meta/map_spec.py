@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-from tensorstream.streamable import Stream, stream_to_tensor
 from tensorstream.meta.compose import Compose
 from tensorstream.meta.factory import Factory
 from tensorstream.meta.map import Map
@@ -21,7 +20,7 @@ class MapSpec(TestCase):
 
     values_ph = tf.placeholder(tf.float32)
     v = Map(SimpleMovingAverage(4), size=3)
-    o, _ = stream_to_tensor(v(Stream(values_ph)))
+    o, _ = v(values_ph)
 
     with tf.Session() as sess:
       output = sess.run(o, {

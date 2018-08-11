@@ -3,7 +3,6 @@ import pandas as pd
 import tensorflow as tf
 
 from tensorstream.tests import TestCase
-from tensorstream.streamable import stream_to_tensor, Stream
 from tensorstream.trading.signals.moving_average_crossover_signal import SimpleMovingAverageCrossoverSignal
 
 class MovingAverageCrossoverSignalSpec(TestCase):
@@ -16,7 +15,7 @@ class MovingAverageCrossoverSignalSpec(TestCase):
     close_prices = tf.placeholder(tf.float32)
     sheet = self.sheets['Sheet1']
 
-    ma_crossover_ts, _ = stream_to_tensor(ma_crossover(Stream(close_prices)))
+    ma_crossover_ts, _ = ma_crossover(close_prices)
     with tf.Session() as sess:
       output = sess.run(ma_crossover_ts, {
         close_prices: sheet['Close']

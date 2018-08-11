@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-from tensorstream.streamable import Stream, stream_to_tensor
 from tensorstream.meta.factory import Factory
 from tensorstream.trading.moving_average import SimpleMovingAverage
 from tensorstream.tests import TestCase
@@ -14,7 +13,7 @@ class FactorySpec(TestCase):
   def test_sma_3_5_10_in_factory_list(self):
     factory = Factory(SimpleMovingAverage, ([3], [5], [10]))
     prices = tf.placeholder(tf.float32)
-    factory_ts, _ = stream_to_tensor(factory(Stream(prices), Stream(prices), Stream(prices)))
+    factory_ts, _ = factory(inputs=(prices, prices, prices))
     
     with tf.Session() as sess:
       output = sess.run(factory_ts, 

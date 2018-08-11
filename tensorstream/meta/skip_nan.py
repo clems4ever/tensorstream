@@ -28,7 +28,7 @@ class SkipNan(Streamable):
     has_nan = functools.reduce(detect_nan, inputs, tf.constant(False))
     zeros = tf.zeros(self.shape[0], dtype=self.dtype[0])
     
-    output, next_state = self.operator(*inputs, state=previous_state)
+    output, next_state = self.operator(inputs, previous_state, streamable=False)
 
     selected_outputs = tf.cond(has_nan, lambda: zeros, lambda: output)
     selected_next_state = tf.cond(has_nan, lambda: previous_state, lambda: next_state)

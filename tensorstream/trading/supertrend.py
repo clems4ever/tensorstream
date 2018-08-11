@@ -52,7 +52,12 @@ class Supertrend(Streamable):
     def warmup():
       return math.nan, math.nan, 0, math.nan
     
-    atr, atr_state = self.atr(close_price, low_price, high_price, state=atr_state)
+    atr, atr_state = self.atr(
+      inputs=(close_price, low_price, high_price),
+      state=atr_state,
+      streamable=False
+    )
+
     trend_down, trend_up, trend, supertrend = tf.cond(
       tf.is_nan(atr),
       lambda: warmup(),

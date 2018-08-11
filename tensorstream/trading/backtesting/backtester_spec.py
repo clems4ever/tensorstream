@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from tensorstream.streamable import stream_to_tensor, Stream, Streamable
+from tensorstream.streamable import Streamable
 from tensorstream.tests import TestCase
 from tensorstream.trading.backtesting.backtester import Backtester
 
@@ -64,11 +64,9 @@ class BacktesterSpec(TestCase):
     high_p = tf.placeholder(tf.float32)
     volumes = tf.placeholder(tf.float32)
 
-    backtester_ts, _ = stream_to_tensor(backtester(
-      Stream(open_p),
-      Stream(close_p),
-      [Stream(low_p), Stream(high_p), Stream(volumes)]
-    ))
+    backtester_ts, _ = backtester(
+      inputs=(open_p, close_p, [low_p, high_p, volumes])
+    )
 
     with tf.Session() as sess:
       output = sess.run(backtester_ts, {

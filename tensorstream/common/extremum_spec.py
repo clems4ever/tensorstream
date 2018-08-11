@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-from tensorstream.streamable import Stream, stream_to_tensor
 from tensorstream.common.extremum import GlobalMinimum, GlobalMaximum, LocalMinimum, LocalMaximum
 from tensorstream.tests import TestCase
 
@@ -14,8 +13,7 @@ class ExtremumSpec(TestCase):
   def test_global_min(self):
     global_minimum = GlobalMinimum()
     values = tf.placeholder(tf.float32)
-    values_stream = Stream(values)
-    global_minimum_ts, _ = stream_to_tensor(global_minimum(values_stream))
+    global_minimum_ts, _ = global_minimum(values)
 
     with tf.Session() as sess:
       output = sess.run(global_minimum_ts, { values: self.input_ts['Value'] })
@@ -26,8 +24,7 @@ class ExtremumSpec(TestCase):
   def test_global_max(self):
     global_maximum = GlobalMaximum()
     values = tf.placeholder(tf.float32)
-    values_stream = Stream(values)
-    global_maximum_ts, _ = stream_to_tensor(global_maximum(values_stream))
+    global_maximum_ts, _ = global_maximum(values)
 
     with tf.Session() as sess:
       output = sess.run(global_maximum_ts, { values: self.input_ts['Value'] })
@@ -38,8 +35,7 @@ class ExtremumSpec(TestCase):
   def test_local_min(self):
     local_minimum = LocalMinimum(5)
     values = tf.placeholder(tf.float32)
-    values_stream = Stream(values)
-    local_minimum_ts, _ = stream_to_tensor(local_minimum(values_stream))
+    local_minimum_ts, _ = local_minimum(values)
 
     with tf.Session() as sess:
       output = sess.run(local_minimum_ts, { values: self.input_ts['Value'] })
@@ -50,8 +46,7 @@ class ExtremumSpec(TestCase):
   def test_local_max(self):
     local_maximum = LocalMaximum(5)
     values = tf.placeholder(tf.float32)
-    values_stream = Stream(values)
-    local_maximum_ts, _ = stream_to_tensor(local_maximum(values_stream))
+    local_maximum_ts, _ = local_maximum(values)
 
     with tf.Session() as sess:
       output = sess.run(local_maximum_ts, { values: self.input_ts['Value'] })

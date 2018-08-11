@@ -16,8 +16,8 @@ class BollingerBands(Streamable):
     )
 
   def step(self, value, volatility_state, sma_state):
-    sma_output, sma_state = self.sma(value, state=sma_state)
-    volatility_output, volatility_state = self.volatility(value, state=volatility_state)
+    sma_output, sma_state = self.sma(value, state=sma_state, streamable=False)
+    volatility_output, volatility_state = self.volatility(value, state=volatility_state, streamable=False)
 
     middle_band = sma_output
     lower_band = sma_output - volatility_output * self.k

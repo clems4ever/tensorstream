@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-from tensorstream.streamable import stream_to_tensor, Stream
 from tensorstream.trading.supertrend import Supertrend
 
 from tensorstream.tests import TestCase
@@ -17,8 +16,9 @@ class SupertrendSpec(TestCase):
     low_prices = tf.placeholder(tf.float32)
     high_prices = tf.placeholder(tf.float32)
 
-    supertrend_ts, _ = stream_to_tensor(supertrend(
-      Stream(close_prices), Stream(low_prices), Stream(high_prices)))
+    supertrend_ts, _ = supertrend(
+      inputs=(close_prices, low_prices, high_prices)
+    )
 
     with tf.Session() as sess:
       output = sess.run(supertrend_ts, {

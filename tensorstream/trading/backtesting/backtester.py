@@ -66,14 +66,21 @@ class Backtester(Streamable):
       """
       # Run the strategy to get the orders.
       new_market_orders, new_strategy_state =\
-        self.strategy(*last_inputs, state=last_strategy_state)
+        self.strategy(
+          inputs=last_inputs,
+          state=last_strategy_state,
+          streamable=False
+        )
 
       safe_last_close_p = last_inputs[1]
 
       # Update the portfolio according to orders.
       orders_executor_outputs, new_orders_executor_state =\
-        self.orders_executor(safe_open_p, new_market_orders,
-          state=last_orders_executor_state)
+        self.orders_executor(
+          inputs=(safe_open_p, new_market_orders),
+          state=last_orders_executor_state,
+          streamable=False
+        )
 
       return (
         orders_executor_outputs[0],

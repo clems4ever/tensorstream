@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from tensorstream.streamable import stream_to_tensor, Stream
 from tensorstream.trading.backtesting.orders_executor import OrdersExecutor
 from tensorstream.trading.backtesting.fees import us_fees
 
@@ -20,7 +19,7 @@ class OrdersExecutorSpec(TestCase):
     prices = tf.placeholder(tf.float32)
     market_orders = tf.placeholder(tf.int32)
 
-    executor_ts, _ = stream_to_tensor(executor(Stream(prices), Stream(market_orders)))
+    executor_ts, _ = executor((prices, market_orders))
     
     with tf.Session() as sess:
       output = sess.run(executor_ts, {
@@ -45,7 +44,7 @@ class OrdersExecutorSpec(TestCase):
     market_orders_ph = tf.placeholder(tf.int32, shape=[None, 2])
     market_orders = multi_dim_ts[['market_orders 0', 'market_orders 1']].astype('int32')
 
-    executor_ts, _ = stream_to_tensor(executor(Stream(prices_ph), Stream(market_orders_ph)))
+    executor_ts, _ = executor((prices_ph, market_orders_ph))
     
     with tf.Session() as sess:
       output = sess.run(executor_ts, {
@@ -70,7 +69,7 @@ class OrdersExecutorSpec(TestCase):
     market_orders_ph = tf.placeholder(tf.int32, shape=[None, 2])
     market_orders = multi_dim_ts[['market_orders 0', 'market_orders 1']].astype('int32')
 
-    executor_ts, _ = stream_to_tensor(executor(Stream(prices_ph), Stream(market_orders_ph)))
+    executor_ts, _ = executor((prices_ph, market_orders_ph))
     
     with tf.Session() as sess:
       output = sess.run(executor_ts, {

@@ -24,7 +24,7 @@ class Compose(Streamable):
     op_states = list(zip(self.operators, states))
 
     for operator, state in op_states:
-      output, next_state = operator(*op_inputs, state=state)
+      output, next_state = operator(inputs=op_inputs, state=state, streamable=False)
       op_inputs = output if isinstance(output, tuple) else (output,)
       next_states.append(next_state)
 

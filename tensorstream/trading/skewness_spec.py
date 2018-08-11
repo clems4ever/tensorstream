@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-from tensorstream.streamable import stream_to_tensor, Stream
 from tensorstream.trading.skewness import Skewness
 from tensorstream.tests import TestCase
 
@@ -14,7 +13,7 @@ class SkewnessSpec(TestCase):
     s = self.sheets['single_dim'].replace(r'\s*', np.nan, regex=True)
     s10 = Skewness(10)
     prices = tf.placeholder(tf.float32)
-    s10_ts, _ = stream_to_tensor(s10(Stream(prices)))
+    s10_ts, _ = s10(prices)
     
     with tf.Session() as sess:
       output = sess.run(s10_ts, {
@@ -28,7 +27,7 @@ class SkewnessSpec(TestCase):
     s = self.sheets['multi_dim'].replace(r'\s*', np.nan, regex=True)
     s10 = Skewness(10, dtype=tf.float32, shape=(2,))
     prices = tf.placeholder(tf.float32, shape=[None, 2])
-    s10_ts, _ = stream_to_tensor(s10(Stream(prices)))
+    s10_ts, _ = s10(prices)
 
     prices_ts = s[['Return 0', 'Return 1']]
     expected_outputs_ts = s[['Skewness 10D 0', 'Skewness 10D 1']]

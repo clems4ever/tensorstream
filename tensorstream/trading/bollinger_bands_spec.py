@@ -2,7 +2,6 @@ import numpy as np
 import tensorflow as tf
 
 from tensorstream.trading.bollinger_bands import BollingerBands
-from tensorstream.streamable import Stream, stream_to_tensor
 from tensorstream.tests import TestCase
 
 class BollingerBandsSpec(TestCase):
@@ -12,10 +11,8 @@ class BollingerBandsSpec(TestCase):
 
   def test_bollinger_bands(self):
     values = tf.placeholder(tf.float32)
-    values_stream = Stream(values)
-
     bollinger_bands = BollingerBands(20, 2)
-    bb_ts, _ = stream_to_tensor(bollinger_bands(values_stream))
+    bb_ts, _ = bollinger_bands(values)
 
     with tf.Session() as sess:
       output = sess.run(bb_ts, {

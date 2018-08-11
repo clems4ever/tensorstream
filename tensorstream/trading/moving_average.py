@@ -35,7 +35,7 @@ class ExponentialMovingAverage(Streamable):
   # One value expected, the price
   def step(self, value, last_ema, last_sma_state):
     def warmup():
-      return self.sma(value, state=last_sma_state)
+      return self.sma(value, state=last_sma_state, streamable=False)
     def nominal():
       new_ema = value * self.k + last_ema * (1.0 - self.k)
       return new_ema, last_sma_state
@@ -59,7 +59,7 @@ class RollingMovingAverage(Streamable):
 
   def step(self, value, last_rma, last_sma_state):
     def warmup():
-      return self.sma(value, state=last_sma_state)
+      return self.sma(value, state=last_sma_state, streamable=False)
 
     def nominal():
       new_rma = (last_rma * (self.period - 1) + value) / self.period

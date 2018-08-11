@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from tensorstream.streamable import stream_to_tensor, Stream
 from tensorstream.trading.signals.zero_crossover_signal import ZeroCrossoverSignal
 from tensorstream.tests import TestCase
 
@@ -15,7 +14,7 @@ class ZeroCrossoverSignalSpec(TestCase):
     s = self.sheets['single_dim']
     trade_signal = ZeroCrossoverSignal()
     histograms = tf.placeholder(tf.float32)
-    trade_signal_ts, _ = stream_to_tensor(trade_signal(Stream(histograms)))
+    trade_signal_ts, _ = trade_signal(histograms)
 
     with tf.Session() as sess:
       output = sess.run(trade_signal_ts, {
@@ -29,7 +28,7 @@ class ZeroCrossoverSignalSpec(TestCase):
     s = self.sheets['multi_dim'].dropna()
     trade_signal = ZeroCrossoverSignal(shape=(2,))
     histograms = tf.placeholder(tf.float32, shape=[None, 2])
-    trade_signal_ts, _ = stream_to_tensor(trade_signal(Stream(histograms)))
+    trade_signal_ts, _ = trade_signal(histograms)
 
     histograms_ts = s[['Histogram 0', 'Histogram 1']]
     signals_ts = s[['Signals 0', 'Signals 1']]

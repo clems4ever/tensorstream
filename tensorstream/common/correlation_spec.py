@@ -3,7 +3,6 @@ import pandas as pd
 import tensorflow as tf
 
 from tensorstream.common.correlation import Correlation, CrossCorrelation, AutoCorrelation
-from tensorstream.streamable import Stream, stream_to_tensor
 from tensorstream.tests import TestCase
 
 class CorrelationSpec(TestCase):
@@ -16,7 +15,7 @@ class CorrelationSpec(TestCase):
     corr5 = Correlation(5)
     returns0 = tf.placeholder(tf.float32)
     returns1 = tf.placeholder(tf.float32)
-    corr5_ts, _ = stream_to_tensor(corr5(Stream(returns0), Stream(returns1)))
+    corr5_ts, _ = corr5(inputs=(returns0, returns1))
     
     with tf.Session() as sess:
       output = sess.run(corr5_ts, {
@@ -32,7 +31,7 @@ class CorrelationSpec(TestCase):
     corr5 = Correlation(5, shape=(2, 2))
     returns0 = tf.placeholder(tf.float32, shape=[None, 2, 2])
     returns1 = tf.placeholder(tf.float32, shape=[None, 2, 2])
-    corr5_ts, _ = stream_to_tensor(corr5(Stream(returns0), Stream(returns1)))
+    corr5_ts, _ = corr5(inputs=(returns0, returns1))
 
     returns_ts = s[['Returns 0', 'Returns 1']]
     expected_outputs_ts = s[['Correlation 0/0', 'Correlation 0/1', 'Correlation 1/0', 'Correlation 1/1']]
@@ -71,7 +70,7 @@ class CrossCorrelationSpec(TestCase):
     corr5 = CrossCorrelation(period=5, lag=2)
     returns0 = tf.placeholder(tf.float32)
     returns1 = tf.placeholder(tf.float32)
-    corr5_ts, _ = stream_to_tensor(corr5(Stream(returns0), Stream(returns1)))
+    corr5_ts, _ = corr5(inputs=(returns0, returns1))
     
     with tf.Session() as sess:
       output = sess.run(corr5_ts, {
@@ -87,7 +86,7 @@ class CrossCorrelationSpec(TestCase):
     corr5 = CrossCorrelation(period=5, lag=2, shape=(2, 2))
     returns0 = tf.placeholder(tf.float32, shape=[None, 2, 2])
     returns1 = tf.placeholder(tf.float32, shape=[None, 2, 2])
-    corr5_ts, _ = stream_to_tensor(corr5(Stream(returns0), Stream(returns1)))
+    corr5_ts, _ = corr5(inputs=(returns0, returns1))
 
     returns_ts = s[['Returns 0', 'Returns 1']]
     expected_outputs_ts = s[['Correlation 0/0', 'Correlation 0/1', 'Correlation 1/0', 'Correlation 1/1']]
@@ -124,7 +123,7 @@ class AutoCorrelationSpec(TestCase):
     s = self.sheets['single_dim'].replace(r'\s*', np.nan, regex=True)
     corr5 = AutoCorrelation(period=5, lag=2)
     returns0 = tf.placeholder(tf.float32)
-    corr5_ts, _ = stream_to_tensor(corr5(Stream(returns0)))
+    corr5_ts, _ = corr5(returns0)
     
     with tf.Session() as sess:
       output = sess.run(corr5_ts, {
@@ -138,7 +137,7 @@ class AutoCorrelationSpec(TestCase):
     s = self.sheets['multi_dim'].replace(r'\s*', np.nan, regex=True).head(30)
     corr5 = AutoCorrelation(period=5, lag=2, shape=(2,))
     returns0 = tf.placeholder(tf.float32, shape=[None, 2])
-    corr5_ts, _ = stream_to_tensor(corr5(Stream(returns0)))
+    corr5_ts, _ = corr5(returns0)
 
     returns_ts = s[['Returns 0', 'Returns 1']]
     expected_outputs_ts = s[['Correlation 0', 'Correlation 1']]

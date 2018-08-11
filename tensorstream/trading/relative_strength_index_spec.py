@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-from tensorstream.streamable import stream_to_tensor, Stream
 from tensorstream.tests import TestCase
 from tensorstream.trading.relative_strength_index import RelativeStrengthIndex
 
@@ -14,8 +13,7 @@ class RelativeStrengthIndexSpec(TestCase):
   def test_rsi(self):
     rsi = RelativeStrengthIndex(14)
     values = tf.placeholder(tf.float32)
-
-    rsi_ts, _ = stream_to_tensor(rsi(Stream(values)))
+    rsi_ts, _ = rsi(values)
 
     with tf.Session() as sess:
       output = sess.run(rsi_ts, {

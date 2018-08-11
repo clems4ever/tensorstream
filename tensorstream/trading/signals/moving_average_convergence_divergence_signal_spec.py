@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from tensorstream.streamable import stream_to_tensor, Stream
 from tensorstream.trading.signals import MovingAverageConvergenceDivergenceSignal as MACDSignal
 from tensorstream.tests import TestCase
 
@@ -19,7 +18,7 @@ class MACDSignalSpec(TestCase):
  
     signal = MACDSignal(26, 12, 9)
     prices = tf.placeholder(tf.float32)
-    signals_ts, _ = stream_to_tensor(signal(Stream(prices)))
+    signals_ts, _ = signal(prices)
 
     with tf.Session() as sess:
       output_ts = sess.run(signals_ts, {
@@ -36,7 +35,7 @@ class MACDSignalSpec(TestCase):
  
     signal = MACDSignal(26, 12, 9, shape=(2,))
     prices = tf.placeholder(tf.float32, shape=[None, 2])
-    signals_ts, _ = stream_to_tensor(signal(Stream(prices)))
+    signals_ts, _ = signal(prices)
 
     with tf.Session() as sess:
       output_ts = sess.run(signals_ts, {

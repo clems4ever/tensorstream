@@ -2,7 +2,6 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 
-from tensorstream.streamable import Stream, stream_to_tensor
 from tensorstream.tests import TestCase
 from tensorstream.trading.moving_average import SimpleMovingAverage
 from tensorstream.trading.moving_average import ExponentialMovingAverage
@@ -18,9 +17,8 @@ class SimpleMovingAveragesSpec(TestCase):
     sma10 = SimpleMovingAverage(10)
 
     prices = tf.placeholder(tf.float32)
-    prices_stream = Stream(prices)
-    sma4_ts, _ = stream_to_tensor(sma4(prices_stream))
-    sma10_ts, _ = stream_to_tensor(sma10(prices_stream))
+    sma4_ts, _ = sma4(prices)
+    sma10_ts, _ = sma10(prices)
     single_dim_ts = self.sheets['single_dim']
     
     with tf.Session() as sess:
@@ -38,9 +36,8 @@ class SimpleMovingAveragesSpec(TestCase):
     sma_output_ts = multi_dim_ts[['SMA4 0', 'SMA4 1', 'SMA4 2']]
 
     prices = tf.placeholder(tf.float32, shape=[None, 3])
-    prices_stream = Stream(prices)
     sma4 = SimpleMovingAverage(4, shape=(3,))
-    sma4_ts, _ = stream_to_tensor(sma4(prices_stream))
+    sma4_ts, _ = sma4(prices)
     
     with tf.Session() as sess:
       output = sess.run(sma4_ts, 
@@ -59,10 +56,9 @@ class ExponentialMovingAverageSpec(TestCase):
   def test_single_dim(self):
     s = self.sheets['single_dim']
     prices = tf.placeholder(tf.float32)
-    prices_stream = Stream(prices)
 
     ema10 = ExponentialMovingAverage(10)
-    ema10_ts, _ = stream_to_tensor(ema10(prices_stream))
+    ema10_ts, _ = ema10(prices)
     
     with tf.Session() as sess:
       output = sess.run(ema10_ts, {prices: s['Close']})
@@ -74,8 +70,7 @@ class ExponentialMovingAverageSpec(TestCase):
     s = self.sheets['multi_dim']
     ema10 = ExponentialMovingAverage(10, shape=(3,))
     prices = tf.placeholder(tf.float32, shape=[None, 3])
-    prices_stream = Stream(prices)
-    ema10_ts, _ = stream_to_tensor(ema10(prices_stream))
+    ema10_ts, _ = ema10(prices)
     prices_ts = s[['Close 0', 'Close 1', 'Close 2']]
     ema_output_ts = s[['EMA10 0', 'EMA10 1', 'EMA10 2']]
     
@@ -96,8 +91,7 @@ class RollingMovingAverageSpec(TestCase):
     s = self.sheets['single_dim']
     rma10 = RollingMovingAverage(10)
     values = tf.placeholder(tf.float32)
-    values_stream = Stream(values)
-    rma10_ts, _ = stream_to_tensor(rma10(values_stream))
+    rma10_ts, _ = rma10(values)
     
     with tf.Session() as sess:
       output = sess.run(rma10_ts, {
@@ -111,8 +105,7 @@ class RollingMovingAverageSpec(TestCase):
     s = self.sheets['multi_dim']
     rma10 = RollingMovingAverage(10, shape=(3,))
     values = tf.placeholder(tf.float32, shape=[None, 3])
-    values_stream = Stream(values)
-    rma10_ts, _ = stream_to_tensor(rma10(values_stream))
+    rma10_ts, _ = rma10(values)
 
     prices_ts = s[['Close 0', 'Close 1', 'Close 2']]
     rma_output_ts = s[['RMA10 0', 'RMA10 1', 'RMA10 2']]

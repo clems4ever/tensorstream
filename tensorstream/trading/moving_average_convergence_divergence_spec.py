@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from tensorstream.streamable import Stream, stream_to_tensor
 from tensorstream.trading.moving_average_convergence_divergence import MovingAverageConvergenceDivergence as MACD
 from tensorstream.tests import TestCase
 
@@ -23,7 +22,7 @@ class MACDSpec(TestCase):
  
     macd_26_12_9 = MACD(26, 12, 9)
     prices = tf.placeholder(tf.float32)
-    macd_ts, _ = stream_to_tensor(macd_26_12_9(Stream(prices)))
+    macd_ts, _ = macd_26_12_9(prices)
 
     with tf.Session() as sess:
       output_ts = sess.run(macd_ts, {
@@ -53,7 +52,7 @@ class MACDSpec(TestCase):
 
     prices = tf.placeholder(tf.float32, shape=[None, 2])
     macd_26_12_9 = MACD(26, 12, 9, dtype=tf.float32, shape=(2,))
-    macd_ts, _ = stream_to_tensor(macd_26_12_9(Stream(prices)))
+    macd_ts, _ = macd_26_12_9(prices)
 
     with tf.Session() as sess:
       output_ts = sess.run(macd_ts, { prices: prices_ts })

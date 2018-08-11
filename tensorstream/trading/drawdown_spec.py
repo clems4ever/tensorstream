@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-from tensorstream.streamable import Stream, stream_to_tensor
 from tensorstream.trading.drawdown import Drawdown, avg
 from tensorstream.tests import TestCase
 
@@ -14,7 +13,7 @@ class AverageTrueRangeSpec(TestCase):
     drawdown = Drawdown()
     values = tf.placeholder(tf.float32)
 
-    drawdown_ts, _ = stream_to_tensor(drawdown(Stream(values)))
+    drawdown_ts, _ = drawdown(values)
 
     with tf.Session() as sess:
       output = sess.run(drawdown_ts, {
@@ -36,7 +35,7 @@ class AverageTrueRangeSpec(TestCase):
     drawdown_op = Drawdown()
     values = tf.placeholder(tf.float32)
 
-    (drawdown, drawdown_days), _ = stream_to_tensor(drawdown_op(Stream(values)))
+    (drawdown, drawdown_days), _ = drawdown_op(values)
     mean_drawdown, mean_drawdown_days = avg(drawdown, drawdown_days)
 
     with tf.Session() as sess:

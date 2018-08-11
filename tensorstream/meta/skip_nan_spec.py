@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-from tensorstream.streamable import Stream, stream_to_tensor
 from tensorstream.meta.skip_nan import SkipNan
 from tensorstream.meta.map import Map
 from tensorstream.meta.factory import Factory
@@ -23,7 +22,7 @@ class SkipNanSpec(TestCase):
 
     values_ph = tf.placeholder(tf.float32)
     v = SkipNan(SimpleMovingAverage(4))
-    o, _ = stream_to_tensor(v(Stream(values_ph)))
+    o, _ = v(values_ph)
 
     with tf.Session() as sess:
       output = sess.run(o, {
@@ -44,7 +43,7 @@ class SkipNanSpec(TestCase):
 
     values_ph = tf.placeholder(tf.float32)
     v = Map(SkipNan(SimpleMovingAverage(4)), 3)
-    o, _ = stream_to_tensor(v(Stream(values_ph)))
+    o, _ = v(values_ph)
 
     with tf.Session() as sess:
       output = sess.run(o, {
@@ -66,7 +65,7 @@ class SkipNanSpec(TestCase):
     values_ph = tf.placeholder(tf.float32, shape=[None, 3])
     sma4 = SimpleMovingAverage(4)
     v = Map(SkipNan(sma4), 3)
-    o, _ = stream_to_tensor(v(Stream(values_ph)))
+    o, _ = v(values_ph)
 
     with tf.Session() as sess:
       output = sess.run(o, {

@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from tensorstream.streamable import stream_to_tensor, Stream
 from tensorstream.tests import TestCase
 from tensorstream.trading.evaluators.risk_ratio_evaluator import RiskRatioEvaluator
 
@@ -18,13 +17,8 @@ class RiskRatioEvaluatorSpec(TestCase):
     high_prices = tf.placeholder(tf.float32)
     signals = tf.placeholder(tf.float32)
 
-    evaluator_ts, _ = stream_to_tensor(
-      evaluator(
-        Stream(low_prices),
-        Stream(high_prices),
-        Stream(close_prices),
-        Stream(signals)
-      )
+    evaluator_ts, _ = evaluator(
+      inputs=(low_prices, high_prices, close_prices, signals)
     )
 
     input_ts = self.sheets['Sheet1']

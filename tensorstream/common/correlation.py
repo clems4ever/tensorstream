@@ -51,7 +51,12 @@ class CrossCorrelation(Streamable):
     lagged_value2 = last_lag_buffer[self.lag - 1]
     correlation, new_correlation_state = tf.cond(iteration < self.lag,
       lambda: (tf.fill(self.shape, math.nan), correlation_state),
-      lambda: self.correlation(value1, lagged_value2, state=correlation_state))
+      lambda: self.correlation(
+        inputs=(value1, lagged_value2),
+        state=correlation_state,
+        streamable=False
+      )
+    )
     new_lag_buffer = roll(value2, last_lag_buffer)
     return correlation, (iteration + 1, new_correlation_state, new_lag_buffer)
 
@@ -62,4 +67,8 @@ class AutoCorrelation(Streamable):
     self.initial_state = self.cross_correlation.initial_state
 
   def step(self, value, *cross_correlation_state):
-    return self.cross_correlation(value, value, state=cross_correlation_state)
+    return self.cross_correlation(
+      inputs=(value, value),
+      state=cross_correlation_state,
+      streamable=False
+    )
