@@ -34,7 +34,6 @@ class Streamable:
 
   def call_streamed(self, inputs_tensors, state):
     inputs_sizes = tuple(map(lambda x: tf.shape(x)[0], flatten(inputs_tensors)))
-    print("SIZES", inputs_sizes)
     size = inputs_sizes[0]
     same_size = functools.reduce(lambda acc, x: tf.logical_and(acc, tf.equal(x, size)),
       inputs_sizes, tf.constant(True))
