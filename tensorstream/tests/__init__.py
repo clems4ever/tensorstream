@@ -1,9 +1,14 @@
 import os
 import unittest
 import pandas as pd
+import tensorflow as tf
 from pyexcel_ods import get_data
 
 class TestCase(unittest.TestCase):
+
+  def tearDown(self):
+    tf.reset_default_graph()
+
   def read_ods(self, filename, header=0):
     data = get_data(filename)
     return {k: pd.DataFrame(d[header+1:], columns=d[header])
