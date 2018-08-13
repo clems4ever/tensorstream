@@ -14,14 +14,12 @@ class MovingStandardDeviation(Streamable):
     next_last_values = roll(value, previous_last_values)
 
     def compute_volatility():
-      mean = tf.reduce_mean(next_last_values)
-      squared_deviation = tf.square(next_last_values - tf.fill((self.period,) + self.shape, mean))
-      mean_squared_deviation = tf.reduce_mean(squared_deviation) 
-      return tf.sqrt(mean_squared_deviation)
+      _, var = tf.nn.moments(next_last_values, axes=[0])
+      return tf.sqrt(var)
 
     has_nan = tf.reduce_any(tf.is_nan(next_last_values))
     volatility = tf.cond(has_nan,
-      lambda: tf.zeros(self.shape), 
+      lambda: tf.fill(self.shape, math.nan),
       compute_volatility)
 
     return volatility, next_last_values
