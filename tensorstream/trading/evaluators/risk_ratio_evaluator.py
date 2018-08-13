@@ -48,10 +48,12 @@ class RiskRatioEvaluator(Streamable):
         tf.logical_not(is_nan),
         tf.greater_equal(high, previous_limit_price)
       )
-      max_bet_duration_reached = tf.logical_and(
-        tf.logical_not(is_nan),
-        tf.equal(previous_bet_duration, self.max_bet_duration)
-      )
+
+      if not self.max_bet_duration is None:
+        max_bet_duration_reached = tf.logical_and(
+          tf.logical_not(is_nan),
+          tf.equal(previous_bet_duration, self.max_bet_duration)
+        )
 
       buy_signal = tf.logical_and(
         is_nan,
@@ -120,13 +122,17 @@ class RiskRatioEvaluator(Streamable):
           previous_total_bets + 1,
           -1
        )
-      
-      next_state  = tf.case([
+
+      cases = [
         (stop_hit, sell_after_stop_hit),
         (limit_hit, sell_after_limit_hit),
-        (max_bet_duration_reached, sell_after_max_bet_duration_reached),
         (buy_signal, buy)
-      ], default=wait, exclusive=False)
+      ]
+
+      if not self.max_bet_duration is None:
+        cases.append((max_bet_duration_reached, sell_after_max_bet_duration_reached))
+      
+      next_state  = tf.case(cases, default=wait, exclusive=False)
 
       return (
         next_state[4],
