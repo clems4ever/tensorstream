@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorstream.meta.compose import Compose
 from tensorstream.meta.factory import Factory
 from tensorstream.meta.map import Map
-from tensorstream.trading.moving_average import SimpleMovingAverage
+from tensorstream.finance.moving_average import SimpleMovingAverage
 from tensorstream.tests import TestCase
 
 class MapSpec(TestCase):
