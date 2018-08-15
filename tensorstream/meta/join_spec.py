@@ -4,7 +4,7 @@ import pandas as pd
 
 from tensorstream.meta import Join, Fork
 from tensorstream.tests import TestCase
-from tensorstream.trading.moving_average import SimpleMovingAverage, ExponentialMovingAverage
+from tensorstream.finance.moving_average import SimpleMovingAverage, ExponentialMovingAverage
 
 class JoinSpec(TestCase):
   def setUp(self):

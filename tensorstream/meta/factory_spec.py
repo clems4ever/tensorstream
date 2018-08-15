@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 from tensorstream.meta.factory import Factory
-from tensorstream.trading.moving_average import SimpleMovingAverage
+from tensorstream.finance.moving_average import SimpleMovingAverage
 from tensorstream.tests import TestCase
 
 class FactorySpec(TestCase):

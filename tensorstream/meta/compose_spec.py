@@ -5,8 +5,8 @@ import tensorflow as tf
 from tensorstream.meta import Fork, make_streamable
 from tensorstream.meta.compose import Compose
 from tensorstream.tests import TestCase
-from tensorstream.trading.moving_average import SimpleMovingAverage
-from tensorstream.trading.returns import Returns
+from tensorstream.finance.moving_average import SimpleMovingAverage
+from tensorstream.finance.returns import Returns
 
 class ComposeSpec(TestCase):
   def setUp(self):
