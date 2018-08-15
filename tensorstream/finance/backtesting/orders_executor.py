@@ -24,13 +24,7 @@ class OrdersExecutor(Streamable):
 
   def step(self, prices, market_orders,
            last_cash, last_stocks):
-    bad_price = tf.equal(prices, tf.zeros(shape=self.input_shape))
-
-    # We evaluate the number of stocks to trade for tomorrow
-    # And keep the current number of stocks if we received a bad price.
-    new_stocks = tf.where(bad_price,
-      last_stocks,
-      last_stocks + market_orders)
+    new_stocks = last_stocks + market_orders
 
     # The trades are evaluated with open prices.
     actual_fees = self.fees_evaluator.evaluate(
