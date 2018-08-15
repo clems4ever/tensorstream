@@ -32,6 +32,22 @@ class Streamable:
     self.shape = shape
     self.initial_state = initial_state
 
+  @staticmethod
+  def check_types_equality(type1, type2, error_message):
+    """
+    Check the types are equal or throw otherwise.
+    """
+    if type1 != type2:
+      raise Exception(error_message % (str(type1), str(type2)))
+    return
+     
+    
+  @staticmethod
+  def to_type(values):
+    return traverse(
+      values, [values], lambda val: val.dtype if isinstance(val, tf.Tensor) else tf.convert_to_tensor(val).dtype
+    )
+
   def call_streamed(self, inputs_tensors, state):
     inputs_sizes = tuple(map(lambda x: tf.shape(x)[0], flatten(inputs_tensors)))
     size = inputs_sizes[0]
@@ -51,12 +67,30 @@ class Streamable:
       else:
         current_inputs = (inputs_i,)
 
+      Streamable.check_types_equality(
+        Streamable.to_type(self.initial_state),
+        Streamable.to_type(loop_state),
+        "Input state has wrong type. operator.initial_state: %s, input_state: %s."
+      )
+
       if isinstance(loop_state, (tuple, list)):
         previous_state = loop_state
       else:
         previous_state= (loop_state,)
         
       outputs_i, next_state = self.step(*current_inputs, *previous_state)
+
+      Streamable.check_types_equality(
+        self.dtype,
+        Streamable.to_type(outputs_i),
+        "Output has wrong type. operator.dtype: %s, output: %s."
+      )
+
+      Streamable.check_types_equality(
+        Streamable.to_type(self.initial_state),
+        Streamable.to_type(next_state),
+        "Output state has wrong type. operator.initial_state: %s, output_state: %s."
+      )
 
       new_outputs = traverse(outputs_i, [outputs_i, loop_outputs], lambda x, y: y.write(i, x))
       traverse(loop_state, [loop_state, next_state], lambda x, y: y.set_shape(x.get_shape()))
