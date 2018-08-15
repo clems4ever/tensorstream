@@ -84,6 +84,27 @@ class NestedOperator(Streamable):
     new_value, next_state = self.with_state(value, prev_state, streamable=False)
     return new_value + 1, next_state
 
+class BadInputStateOperator(Streamable):
+  def __init__(self):
+    super().__init__(tf.int32, ())
+
+  def step(self, value, iteration):
+    return value, ()
+
+class BadOutputOperator(Streamable):
+  def __init__(self):
+    super().__init__(tf.int32, ())
+
+  def step(self, value):
+    return (value, value), ()
+
+class BadOutputStateOperator(Streamable):
+  def __init__(self):
+    super().__init__(tf.int32, ())
+
+  def step(self, value):
+    return value, value
+
 class StreamableSpec(unittest.TestCase):
   def test_flatten(self):
     x = flatten((1, {'a': (1,'z'), 'b': {'c': 'd'}},))
@@ -229,3 +250,27 @@ class StreamableSpec(unittest.TestCase):
 
     self.assertEqual(output[0].tolist(), [1, 3, 5, 7, 9, 11])
     self.assertEqual(output[1], 12)
+
+  def test_streamable_bad_input_state_operator(self):
+    op = BadInputStateOperator()
+    x = tf.constant([0, 1, 2, 3, 4, 5])
+    with self.assertRaises(Exception) as context:
+      z, s = op(x, state=0)
+
+    self.assertEqual(str(context.exception), "Input state has wrong type. operator.initial_state: (), input_state: <dtype: 'int32'>.")
+
+  def test_streamable_bad_output_operator(self):
+    op = BadOutputOperator()
+    x = tf.constant([0, 1, 2, 3, 4, 5])
+    with self.assertRaises(Exception) as context:
+      z, s = op(x)
+
+    self.assertEqual(str(context.exception), "Output has wrong type. operator.dtype: <dtype: 'int32'>, output: (tf.int32, tf.int32).")
+
+  def test_streamable_bad_output_state_operator(self):
+    op = BadOutputStateOperator()
+    x = tf.constant([0, 1, 2, 3, 4, 5])
+    with self.assertRaises(Exception) as context:
+      z, s = op(x)
+
+    self.assertEqual(str(context.exception), "Output state has wrong type. operator.initial_state: (), output_state: <dtype: 'int32'>.")
