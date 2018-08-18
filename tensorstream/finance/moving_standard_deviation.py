@@ -23,6 +23,3 @@ class MovingStandardDeviation(Streamable):
       compute_volatility)
 
     return volatility, next_last_values
-
-# Alias
-Volatility = MovingStandardDeviation
