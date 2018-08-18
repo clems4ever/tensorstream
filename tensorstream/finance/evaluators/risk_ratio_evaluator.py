@@ -2,14 +2,14 @@ import math
 import tensorflow as tf
 
 from tensorstream.streamable import Streamable
-from tensorstream.finance import Volatility
+from tensorstream.finance.moving_standard_deviation import MovingStandardDeviation
 
 class RiskRatioEvaluator(Streamable):
     def __init__(self, stop_factor, limit_factor, volatility_period=5,
       max_bet_duration=None, dtype=tf.float32, shape=()):
 
       super().__init__((tf.int32, tf.int32, dtype, tf.int32), tuple([shape]*4))
-      self.volatility_op = Volatility(period=volatility_period)
+      self.msd_op = MovingStandardDeviation(period=volatility_period)
       self.initial_state = (
           tf.constant(math.nan), # stop price
           tf.constant(math.nan), # limit price
@@ -17,7 +17,7 @@ class RiskRatioEvaluator(Streamable):
           tf.constant(0), # bet_duration
           tf.constant(0), # successful bets
           tf.constant(0), # total bets
-          self.volatility_op.initial_state
+          self.msd_op.initial_state
       )
       self.stop_factor = stop_factor
       self.limit_factor = limit_factor
@@ -32,7 +32,7 @@ class RiskRatioEvaluator(Streamable):
       previous_total_bets,
       previous_volatility_state): 
       
-      volatility, next_volatility_state = self.volatility_op(
+      volatility, next_volatility_state = self.msd_op(
         inputs=close,
         state=previous_volatility_state,
         streamable=False
