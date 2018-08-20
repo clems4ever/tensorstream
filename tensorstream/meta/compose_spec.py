@@ -6,7 +6,7 @@ from tensorstream.meta import Fork, make_streamable
 from tensorstream.meta.compose import Compose
 from tensorstream.tests import TestCase
 from tensorstream.finance.moving_average import SimpleMovingAverage
-from tensorstream.finance.returns import Returns
+from tensorstream.finance.returns import Return
 
 class ComposeSpec(TestCase):
   def setUp(self):
@@ -14,7 +14,7 @@ class ComposeSpec(TestCase):
       self.from_test_res('compose.csv', __file__)).astype('float32')
 
   def test_composition(self):
-    var1_sma5 = Compose(Returns(1), SimpleMovingAverage(4))
+    var1_sma5 = Compose(Return(1), SimpleMovingAverage(4))
     values = tf.placeholder(tf.float32)
     var1_sma5_ts, _ = var1_sma5(inputs=values)
 
@@ -25,7 +25,7 @@ class ComposeSpec(TestCase):
       self.input_ts['Composition'].values, decimal=3)
 
   def test_composition_multiple_outputs(self):
-    var1_sma5 = Compose(Fork(2), Returns(1), SimpleMovingAverage(4))
+    var1_sma5 = Compose(Fork(2), Return(1), SimpleMovingAverage(4))
     values = tf.placeholder(tf.float32)
     var1_sma5_ts, _ = var1_sma5(values)
 

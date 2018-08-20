@@ -10,7 +10,7 @@ class MovingStandardDeviationSpec(TestCase):
     self.sheets = self.read_ods(
       self.from_test_res('moving_standard_deviation.ods', __file__))
 
-  def test_volatility(self):
+  def test_moving_standard_deviation_single_dim(self):
     volatility = MovingStandardDeviation(10)
     values = tf.placeholder(tf.float32)
     volatility_ts, _ = volatility(values)
@@ -23,7 +23,7 @@ class MovingStandardDeviationSpec(TestCase):
     np.testing.assert_almost_equal(output,
       inputs['Volatility'].values, decimal=3)
 
-  def test_volatility_multidim(self):
+  def test_moving_standard_deviation_multidim(self):
     volatility = MovingStandardDeviation(10, shape=(2,))
     values = tf.placeholder(tf.float32, shape=(None, 2))
     volatility_ts, _ = volatility(values)

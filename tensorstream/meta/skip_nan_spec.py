@@ -5,7 +5,6 @@ from tensorstream.meta.skip_nan import SkipNan
 from tensorstream.meta.map import Map
 from tensorstream.meta.factory import Factory
 from tensorstream.finance.moving_average import SimpleMovingAverage
-from tensorstream.finance.returns import Returns
 from tensorstream.tests import TestCase
 
 class SkipNanSpec(TestCase):
