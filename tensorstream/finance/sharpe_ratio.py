@@ -8,7 +8,7 @@ class SharpeRatio(Streamable):
   def __init__(self, period, dtype=tf.float32, shape=()):
     super().__init__(dtype, shape)
     self.period = period
-    self.initial_state = tf.fill((period,) + self.shape, math.nan)
+    self.initial_state = tf.fill((period,) + shape, math.nan)
 
   def step(self, return_, risk_free_rate, last_adjusted_values):
     def compute_sharpe_ratio(adjusted_values):

@@ -25,7 +25,7 @@ def shift(new_value, vector, axis=0):
         tf.slice(vector, [0], [tf.size(vector) - 1])], axis)
 
 def roll(value, tensor, shift=1, axis=0):
-  return tf.stack([value, *tf.unstack(tensor[:-1])])
+  return tf.concat([[value], tensor[:-1]], axis=0)
 
 def transpose(products_df):
   columns = list(products_df[0])
