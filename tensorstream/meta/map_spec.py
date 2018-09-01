@@ -13,7 +13,7 @@ class MapSpec(TestCase):
       self.from_test_res('map.ods', __file__))
 
   def test_map_skip_without_holes(self):
-    s = self.sheets['vectorize']
+    s = self.sheets['Sheet1']
 
     values = s[['Value 0', 'Value 1', 'Value 2']].replace(r'\s*', np.nan, regex=True)
     sma_outputs = s[['SMA4 0', 'SMA4 1', 'SMA4 2']].replace(r'\s*', np.nan, regex=True)
