@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from tensorstream.streamable import Streamable
-from tensorstream import map_fn
+from tensorstream.helpers.map_fn import map_fn
 
 class Map(Streamable):
   def __init__(self, operator, size):

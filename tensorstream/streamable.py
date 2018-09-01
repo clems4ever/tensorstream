@@ -2,6 +2,7 @@ import tensorflow as tf
 import functools
 
 from tensorstream.helpers.map_fn import map_fn
+from tensorstream.helpers.flatten import flatten
 
 class Streamable:
   def __init__(self, dtype=tf.int32, shape=(), initial_state=()):
