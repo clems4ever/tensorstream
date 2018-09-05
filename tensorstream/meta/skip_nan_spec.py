@@ -12,8 +12,8 @@ class SkipNanSpec(TestCase):
     self.sheets = self.read_ods(
       self.from_test_res('skip_nan.ods', __file__))
 
-  def test_simple_skip_nan(self):
-    s = self.sheets['vectorize']
+  def test_skip_nan_single_no_holes(self):
+    s = self.sheets['NoHoles']
 
     values = s['Value 0'].replace(r'\s*', np.nan, regex=True)
     sma_outputs = s['SMA4 0'].replace(r'\s*', np.nan, regex=True)
@@ -33,8 +33,8 @@ class SkipNanSpec(TestCase):
     np.testing.assert_almost_equal(output[1],
       masks.values, decimal=3)
 
-  def test_map_skip_without_holes(self):
-    s = self.sheets['vectorize']
+  def test_skip_nan_multi_dim_no_holes(self):
+    s = self.sheets['NoHoles']
 
     values = s[['Value 0', 'Value 1', 'Value 2']].replace(r'\s*', np.nan, regex=True)
     sma_outputs = s[['SMA4 0', 'SMA4 1', 'SMA4 2']].replace(r'\s*', np.nan, regex=True)
@@ -54,8 +54,8 @@ class SkipNanSpec(TestCase):
     np.testing.assert_almost_equal(output[1],
       masks.values, decimal=3)
 
-  def test_map_skip_with_holes(self):
-    s = self.sheets['holes']
+  def test_skip_nan_multi_dim_with_holes(self):
+    s = self.sheets['Holes']
 
     values = s[['Value 0', 'Value 1', 'Value 2']].replace(r'\s*', np.nan, regex=True)
     sma_outputs = s[['SMA4 0', 'SMA4 1', 'SMA4 2']].replace(r'\s*', np.nan, regex=True)

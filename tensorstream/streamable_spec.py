@@ -106,11 +106,6 @@ class BadOutputStateOperator(Streamable):
     return value, value
 
 class StreamableSpec(unittest.TestCase):
-  def test_flatten(self):
-    x = flatten((1, {'a': (1,'z'), 'b': {'c': 'd'}},))
-
-    assert(x == [1, 1, 'z', 'd'] or x == [1, 'd', 1, 'z'])
-
   def test_streamable_step(self):
     sim = Simple()
     x = tf.constant(4)

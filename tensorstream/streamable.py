@@ -1,30 +1,8 @@
 import tensorflow as tf
 import functools
 
-def traverse(obj1, objs, apply_fn):
-  if isinstance(obj1, dict):
-    def fn(kv):
-      new_objs = list(map(lambda o: o[kv[0]], objs))
-      return (kv[0], traverse(kv[1], new_objs, apply_fn))
-    return dict(map(fn, obj1.items()))
-  elif isinstance(obj1, list):
-    return list(map(lambda e: traverse(e[0], e[1:], apply_fn), zip(obj1, *objs)))
-  elif isinstance(obj1, tuple):
-    return tuple(map(lambda e: traverse(e[0], e[1:], apply_fn), zip(obj1, *objs)))
-  else:
-    return apply_fn(*objs)
-
-def flatten(elems):
-  stack = []
-  if isinstance(elems, (list, tuple)):
-    for x in elems:
-      stack += flatten(x)
-  elif isinstance(elems, (dict)):
-    for x in elems.values():
-      stack += flatten(x)
-  else:
-    stack.append(elems)
-  return stack
+from tensorstream.helpers.map_fn import map_fn
+from tensorstream.helpers.flatten import flatten
 
 class Streamable:
   def __init__(self, dtype=tf.int32, shape=(), initial_state=()):
@@ -44,7 +22,7 @@ class Streamable:
     
   @staticmethod
   def to_type(values):
-    return traverse(
+    return map_fn(
       values, [values], lambda val: val.dtype if isinstance(val, tf.Tensor) else tf.convert_to_tensor(val).dtype
     )
 
@@ -61,7 +39,7 @@ class Streamable:
       return i < size
 
     def loop(i, loop_inputs, loop_state, loop_outputs):
-      inputs_i = traverse(loop_inputs, [loop_inputs], lambda x: x[i])
+      inputs_i = map_fn(loop_inputs, [loop_inputs], lambda x: x[i])
       if isinstance(loop_inputs, (tuple, list)):
         current_inputs = inputs_i
       else:
@@ -92,19 +70,19 @@ class Streamable:
         "Output state has wrong type. operator.initial_state: %s, output_state: %s."
       )
 
-      new_outputs = traverse(outputs_i, [outputs_i, loop_outputs], lambda x, y: y.write(i, x))
-      traverse(loop_state, [loop_state, next_state], lambda x, y: y.set_shape(x.get_shape()))
+      new_outputs = map_fn(outputs_i, [outputs_i, loop_outputs], lambda x, y: y.write(i, x))
+      map_fn(loop_state, [loop_state, next_state], lambda x, y: y.set_shape(x.get_shape()))
       return (i + 1, loop_inputs, next_state, new_outputs)
 
     i0 = tf.constant(0)
 
-    outputs = traverse(self.dtype, [self.dtype, self.shape],
+    outputs = map_fn(self.dtype, [self.dtype, self.shape],
       lambda x, y: tf.TensorArray(dtype=x, element_shape=y, size=size))
 
     with tf.control_dependencies([assert_same_size]):
       i_f, inputs_f, state_f, outputs_f = tf.while_loop(cond, loop,
         loop_vars=[i0, inputs_tensors, state, outputs], name="stream_loop")
-    outputs = traverse(outputs_f, [outputs_f], lambda o: o.stack())
+    outputs = map_fn(outputs_f, [outputs_f], lambda o: o.stack())
 
     return (outputs, state_f)
 
