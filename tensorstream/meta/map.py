@@ -10,15 +10,21 @@ class Map(MetaStreamable):
     self.operator = operator
 
   def initial_state(self, *inputs):
-    initial_state = self.operator.initial_state(*inputs)
+    input0 = map_fn(inputs, [inputs], lambda x: x[0])
+    initial_state = self.operator.initial_state(*input0)
+  
+    def dimensions(x):
+      dim = tf.ones([tf.size(tf.shape(x))], dtype=tf.int32)
+      return tf.concat([[self.size], dim], axis=0)
+  
     return map_fn(initial_state, [initial_state],
-      lambda x: tf.tile(tf.expand_dims(x, axis=0), [self.size] + [1] * tf.size(tf.shape(x))))
+      lambda x: tf.tile(tf.expand_dims(x, axis=0), dimensions(x)))
  
   def step(self, inputs, prev_state):
     state_dtype = map_fn(prev_state, [prev_state], lambda x: x.dtype) 
 
     # Get operator output type.
-    op_value, _ = self.operator(inputs[0])
+    op_value, _ = self.operator(inputs[0], streamable=False)
     output_dtype = map_fn(op_value, [op_value], lambda o: o.dtype)
 
     def apply_op(inputs_states):
