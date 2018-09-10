@@ -1,17 +1,19 @@
-import math
 import tensorflow as tf
 
 from tensorstream.common import roll
 from tensorstream.streamable import Streamable
 
 class Correlation(Streamable):
-  def __init__(self, period, dtype=tf.float32, shape=()):
-    super().__init__(dtype, shape)
+  def __init__(self, period):
+    super().__init__()
     self.period = period
-    self.initial_state = (
+
+  def initial_state(self, v1, v2):
+    shape = self.concat([self.period], tf.shape(v1))
+    return (
       tf.constant(0),
-      tf.fill((period,) + shape, math.nan),
-      tf.fill((period,) + shape, math.nan)
+      tf.zeros(shape, dtype=v1.dtype),
+      tf.zeros(shape, dtype=v1.dtype)
     )
 
   def step(self, value1, value2, iteration, last_values1, last_values2):
@@ -29,19 +31,22 @@ class Correlation(Streamable):
 
     correlation = tf.cond(
       iteration < self.period,
-      lambda: tf.fill(self.shape, math.nan),
+      lambda: tf.zeros(tf.shape(value1), dtype=value1.dtype),
       lambda: compute_correlation(new_values1, new_values2))
     return correlation, (iteration + 1, new_values1, new_values2)
 
 class CrossCorrelation(Streamable):
-  def __init__(self, period, lag, dtype=tf.float32, shape=()):
-    super().__init__(dtype, shape)
-    self.correlation = Correlation(period, dtype=dtype, shape=shape)
+  def __init__(self, period, lag):
+    super().__init__()
+    self.correlation = Correlation(period)
     self.lag = lag
-    self.initial_state = (
+
+  def initial_state(self, v1, v2):
+    shape = self.concat([self.lag], tf.shape(v1))
+    return (
       tf.constant(0),
-      self.correlation.initial_state,
-      tf.fill((lag,) + self.shape, math.nan),
+      self.correlation.initial_state(v1, v2),
+      tf.zeros(shape, dtype=v1.dtype)
     )
 
   def step(self, value1, value2, iteration, correlation_state, last_lag_buffer):
@@ -50,7 +55,7 @@ class CrossCorrelation(Streamable):
     """
     lagged_value2 = last_lag_buffer[self.lag - 1]
     correlation, new_correlation_state = tf.cond(iteration < self.lag,
-      lambda: (tf.fill(self.shape, math.nan), correlation_state),
+      lambda: (tf.zeros(tf.shape(value1), dtype=value1.dtype), correlation_state),
       lambda: self.correlation(
         inputs=(value1, lagged_value2),
         state=correlation_state,
@@ -61,10 +66,12 @@ class CrossCorrelation(Streamable):
     return correlation, (iteration + 1, new_correlation_state, new_lag_buffer)
 
 class AutoCorrelation(Streamable):
-  def __init__(self, period, lag, dtype=tf.float32, shape=()):
-    super().__init__(dtype, shape)
-    self.cross_correlation = CrossCorrelation(period, lag, dtype=dtype, shape=shape)
-    self.initial_state = self.cross_correlation.initial_state
+  def __init__(self, period, lag):
+    super().__init__()
+    self.cross_correlation = CrossCorrelation(period, lag)
+
+  def initial_state(self, v1):
+    return self.cross_correlation.initial_state(v1, v1)
 
   def step(self, value, *cross_correlation_state):
     return self.cross_correlation(

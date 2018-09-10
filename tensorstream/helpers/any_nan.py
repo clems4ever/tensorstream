@@ -25,3 +25,4 @@ def any_nan(inputs):
     has_nan_inputs,
     tf.constant(False)
   )
+

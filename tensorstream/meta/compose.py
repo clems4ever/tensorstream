@@ -1,31 +1,30 @@
-from tensorstream.streamable import Streamable
+from tensorstream.streamable import MetaStreamable
 
-class Compose(Streamable):
+class Compose(MetaStreamable):
   def __init__(self, *operators):
-    super().__init__(operators[0].dtype, operators[0].shape)
-
+    super().__init__()
     self.operators = tuple(reversed(operators))
-    self.initial_state = tuple(map(lambda x: x.initial_state, self.operators))
 
-  def step(self, *inputs_and_states):
+  def initial_state(self, *inputs):
+    x = inputs
+    states = []
+    for op in self.operators:
+      y, _ = op(x, streamable=False)
+      if isinstance(x, (tuple, list)):
+        states.append(op.initial_state(*x))
+      else:
+        states.append(op.initial_state(x))
+      x = y
+    return tuple(states)
+
+  def step(self, inputs, states):
     next_states = []
-
-    istate = self.initial_state
-
-    total_len = len(inputs_and_states)
-    state_len = len(self.initial_state)
-    out_len = len(self.dtype) if isinstance(self.dtype, tuple) else 1
-    in_len = total_len - state_len
-
-    states = inputs_and_states[in_len:] if isinstance(istate, tuple) else inputs_and_states[-1]
-    inputs = inputs_and_states[0:in_len]
-
     op_inputs = inputs
     op_states = list(zip(self.operators, states))
 
     for operator, state in op_states:
       output, next_state = operator(inputs=op_inputs, state=state, streamable=False)
-      op_inputs = output if isinstance(output, tuple) else (output,)
+      op_inputs = output
       next_states.append(next_state)
 
     return output, tuple(next_states)

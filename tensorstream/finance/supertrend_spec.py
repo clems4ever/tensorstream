@@ -7,10 +7,11 @@ from tensorstream.tests import TestCase
 
 class SupertrendSpec(TestCase):
   def setUp(self):
-    self.input_ts = self.read_csv(
-      self.from_test_res('supertrend.csv', __file__)).astype('float32')
+    self.sheets = self.read_ods(
+      self.from_test_res('supertrend.ods', __file__))
 
   def test_supertrend(self):
+    sheet = self.sheets['supertrend']
     supertrend = Supertrend(10, 3)
     close_prices = tf.placeholder(tf.float32)
     low_prices = tf.placeholder(tf.float32)
@@ -22,10 +23,10 @@ class SupertrendSpec(TestCase):
 
     with tf.Session() as sess:
       output = sess.run(supertrend_ts, {
-        close_prices: self.input_ts['close'],
-        low_prices: self.input_ts['low'],
-        high_prices: self.input_ts['high'],
+        close_prices: sheet['close'],
+        low_prices: sheet['low'],
+        high_prices: sheet['high'],
       })
 
     np.testing.assert_almost_equal(output,
-      self.input_ts['Supertrend'].values, decimal=3)
+      sheet['Supertrend'].values, decimal=3)

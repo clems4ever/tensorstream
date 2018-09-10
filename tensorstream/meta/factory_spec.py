@@ -1,27 +1,35 @@
 import numpy as np
 import tensorflow as tf
 
+from tensorstream.streamable import Streamable
 from tensorstream.meta.factory import Factory
-from tensorstream.finance.moving_average import SimpleMovingAverage
 from tensorstream.tests import TestCase
+
+class MultiplyBy(Streamable):
+  def __init__(self, nb):
+    super().__init__(0.0)
+    self.nb = nb
+
+  def step(self, x, prev_x):
+    return prev_x * self.nb, x
 
 class FactorySpec(TestCase):
   def setUp(self):
-    self.input_ts = self.read_csv(
-      self.from_test_res('factory.csv', __file__)).astype('float32')
+    self.sheets = self.read_ods(
+      self.from_test_res('factory.ods', __file__))
 
-  def test_sma_3_5_10_in_factory_list(self):
-    factory = Factory(SimpleMovingAverage, ([3], [5], [10]))
-    prices = tf.placeholder(tf.float32)
-    factory_ts, _ = factory(inputs=(prices, prices, prices))
+  def test_factory_simple(self):
+    sheet = self.sheets['Sheet1']
+    factory = Factory(MultiplyBy, ([3], [5], [10]))
+    x = tf.placeholder(tf.float32)
+    factory_ts, _ = factory((x, x, x))
     
     with tf.Session() as sess:
-      output = sess.run(factory_ts, 
-        { prices: self.input_ts['Close'] })
+      output = sess.run(factory_ts, { x: sheet['x'] })
 
     np.testing.assert_almost_equal(output[0],
-      self.input_ts['SMA3'].values, decimal=3)
+      sheet['Mul 3'].values, decimal=3)
     np.testing.assert_almost_equal(output[1],
-      self.input_ts['SMA5'].values, decimal=3)
+      sheet['Mul 5'].values, decimal=3)
     np.testing.assert_almost_equal(output[2],
-      self.input_ts['SMA10'].values, decimal=3)
+      sheet['Mul 10'].values, decimal=3)

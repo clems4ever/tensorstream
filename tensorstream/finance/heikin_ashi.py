@@ -1,4 +1,3 @@
-import math
 import tensorflow as tf
 
 from tensorstream.streamable import Streamable
@@ -11,11 +10,15 @@ class HeikinAshi(Streamable):
 
   """
 
-  def __init__(self, dtype=tf.float32, shape=()):
-    super().__init__((dtype,) * 4, (shape,)*4)
+  def __init__(self):
+    super().__init__()
 
+  def initial_state(self, open_price, high_price, low_price, close_price):
     # previous open and close are initialized to NaN for the first step
-    self.initial_state = (tf.constant(math.nan,dtype), tf.constant(math.nan, dtype))
+    return (
+      tf.zeros(tf.shape(open_price), open_price.dtype),
+      tf.zeros(tf.shape(close_price), close_price.dtype)
+    )
 
   def step(self, open_price, high_price, low_price, close_price,
           prev_open_price, prev_close_price):
@@ -23,7 +26,7 @@ class HeikinAshi(Streamable):
     At the first step, prev_open_price = prev_close_prise = -1 and output = input     
     """
 
-    ha_close_price = tf.cond(tf.is_nan(prev_open_price),
+    ha_close_price = tf.cond(tf.equal(prev_open_price, 0),
                             lambda : close_price,
                             lambda : tf.reduce_sum([close_price, 
                                                     low_price,
@@ -31,17 +34,17 @@ class HeikinAshi(Streamable):
                                                     open_price]) / 4,
                             )
 
-    ha_open_price =  tf.cond(tf.is_nan(prev_open_price),
+    ha_open_price =  tf.cond(tf.equal(prev_open_price, 0),
                             lambda: open_price,
                             lambda: (prev_open_price + prev_close_price) / 2)
 
-    ha_low_price = tf.cond(tf.is_nan(prev_open_price),
+    ha_low_price = tf.cond(tf.equal(prev_open_price, 0),
                           lambda : low_price,
                           lambda : tf.reduce_min(
                             tf.stack([low_price, close_price, open_price]))
                           )
 
-    ha_high_price = tf.cond(tf.is_nan(prev_open_price),
+    ha_high_price = tf.cond(tf.equal(prev_open_price, 0),
                             lambda : high_price,
                             lambda : tf.reduce_max(
                               tf.stack([high_price, close_price, open_price]))

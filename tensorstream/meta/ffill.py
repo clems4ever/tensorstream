@@ -1,53 +1,47 @@
-import functools
-import math
 import tensorflow as tf
 
-from tensorstream.streamable import Streamable
-from tensorstream.helpers.any_nan import any_nan
+from tensorstream.helpers.any_value import any_value
 from tensorstream.helpers.map_fn import map_fn
+from tensorstream.streamable import MetaStreamable
 
-class FFill(Streamable):
+class FFill(MetaStreamable):
   """
   Forward fill when nan values is encountered.
   """
   def __init__(self, operator):
-    super().__init__(operator.dtype, operator.shape)
+    super().__init__()
     self.operator = operator
-    nan_output = map_fn(
-      self.dtype,
-      [self.shape],
-      lambda shape: tf.fill(shape, math.nan)
+
+  def initial_state(self, inputs):
+    outputs, _ = self.operator(inputs, streamable=False)
+    zeros = map_fn(
+      outputs,
+      [outputs],
+      lambda o: tf.zeros(tf.shape(o), dtype=tf.convert_to_tensor(o).dtype)
     )
-    self.initial_state = (
-      nan_output, # previous output
-      operator.initial_state
+    return (
+      zeros, # previous output
+      self.operator.initial_state(inputs)
     )
 
-  def step(self, *inputs_and_states):
-    total_len = len(inputs_and_states)
-    state_len = len(self.initial_state)
-    in_len = total_len - state_len
-
-    inputs = inputs_and_states[:in_len]
-    previous_state = inputs_and_states[in_len:]
-
+  def step(self, inputs, previous_state):
     next_output, next_state = self.operator(
       inputs=inputs,
       state=previous_state[1],
-      streamable=False)
-
-    inputs_any_nan = any_nan(inputs)
+      streamable=False
+    )
+    inputs_any_zero = any_value(inputs, 0.0)
 
     selected_outputs = tf.cond(
-      inputs_any_nan,
+      inputs_any_zero,
       lambda: previous_state[0],
       lambda: next_output)
 
-    if self.operator.initial_state == ():
+    if self.operator.initial_state(inputs) == ():
       selected_next_state = ()
     else:
       selected_next_state = tf.cond(
-        inputs_any_nan,
+        inputs_any_zero,
         lambda: previous_state[1],
         lambda: next_state)
 

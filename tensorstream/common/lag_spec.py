@@ -21,17 +21,3 @@ class LagSpec(TestCase):
     np.testing.assert_almost_equal(output,
       input_ts['Delayed'].values, decimal=3)
 
-  def test_lag_multi_dim(self):
-    values = tf.placeholder(tf.float32)
-    buffer_ts, _ = Lag(3, shape=(2,))(values)
-
-    input_ts = self.sheets['multi_dim']
-
-    data = input_ts[['Value 1', 'Value 2']]
-    expected = input_ts[['Lag 1', 'Lag 2']]
-
-    with tf.Session() as sess:
-      output = sess.run(buffer_ts, { values: data })
-
-    np.testing.assert_almost_equal(output,
-      expected.values, decimal=3)

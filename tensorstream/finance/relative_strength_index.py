@@ -1,22 +1,25 @@
-import math
 import tensorflow as tf
 
 from tensorstream.streamable import Streamable
 from tensorstream.common.lag import Lag
 
 class RelativeStrengthIndex(Streamable):
-  def __init__(self, period, dtype=tf.float32, shape=()):
-    super().__init__(dtype, shape)
+  def __init__(self, period):
+    super().__init__()
     self.period = period
-    self.buffer = Lag(period, dtype=dtype, shape=shape)
-    self.initial_state = (
-      self.buffer.initial_state,
+    self.buffer = Lag(period)
+
+  def initial_state(self, value):
+    return (
+      self.buffer.initial_state(value),
       tf.constant(0), # iteration
       tf.constant(0.0), # average gain
       tf.constant(0.0) # average loss
     )
 
-  def step(self, value, buffer_state, iteration, last_average_gain, last_average_loss):
+  def step(self, value, buffer_state,
+    iteration, last_average_gain, last_average_loss):
+
     def compute_default_gain_loss():
       current_gain_or_loss = value - buffer_state[0]
       current_gain = tf.maximum(0.0, current_gain_or_loss)
@@ -56,7 +59,7 @@ class RelativeStrengthIndex(Streamable):
       return (new_average_gain, new_average_loss, rsi)
 
     def warmup():
-      return math.nan, math.nan, math.nan
+      return 0.0, 0.0, 0.0
     
     new_average_gain, new_average_loss, rsi = tf.case({
       tf.equal(iteration, self.period): compute_first_rsi,

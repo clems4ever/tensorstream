@@ -1,39 +1,40 @@
-import math
 import tensorflow as tf
 
 from tensorstream.common import roll
 from tensorstream.streamable import Streamable
 
 class SimpleMovingAverage(Streamable):
-  def __init__(self, period, dtype=tf.float32, shape=()):
-    super().__init__(dtype, shape)
+  def __init__(self, period):
+    super().__init__()
     self.period = period
-    self.initial_state = (
-      tf.constant(0),
-      tf.fill((period,) + self.shape, math.nan)
-    )
 
-  # Only one value expected, the price
+  def initial_state(self, value):
+    shape = self.concat([self.period], tf.shape(value))
+    return (tf.constant(0), tf.zeros(shape))
+
   def step(self, value, iteration, buffer_):
     new_buffer = roll(value, buffer_)
     new_value = tf.cond(iteration < self.period - 1, 
-      lambda: tf.fill(self.shape, math.nan),
+      lambda: tf.zeros(tf.shape(value), dtype=value.dtype),
       lambda: tf.reduce_sum(new_buffer, axis=0) / self.period)
     return new_value, (iteration + 1, new_buffer)
 
 class ExponentialMovingAverage(Streamable):
-  def __init__(self, period, dtype=tf.float32, shape=()):
-    super().__init__(dtype, shape)
+  def __init__(self, period):
+    super().__init__()
     self.period = period
     self.k = 2.0 / (period + 1.0)
-    self.sma = SimpleMovingAverage(period, dtype=dtype, shape=shape)
-    self.initial_state = (
-      tf.fill(shape, math.nan),
-      self.sma.initial_state
+    self.sma = SimpleMovingAverage(period)
+
+  def initial_state(self, value):
+    return (
+      tf.zeros(tf.shape(value), dtype=value.dtype),
+      self.sma.initial_state(value),
+      tf.constant(0)
     )
 
   # One value expected, the price
-  def step(self, value, last_ema, last_sma_state):
+  def step(self, value, last_ema, last_sma_state, iteration):
     def warmup():
       return self.sma(value, state=last_sma_state, streamable=False)
     def nominal():
@@ -41,23 +42,26 @@ class ExponentialMovingAverage(Streamable):
       return new_ema, last_sma_state
 
     new_ema, new_sma_state = tf.cond(
-      tf.reduce_any(tf.is_nan(last_ema)),
+      iteration < self.period,
       warmup,
       nominal
     )
-    return new_ema, (new_ema, new_sma_state)
+    return new_ema, (new_ema, new_sma_state, iteration + 1)
 
 class RollingMovingAverage(Streamable):
-  def __init__(self, period, dtype=tf.float32, shape=()):
-    super().__init__(dtype, shape)
+  def __init__(self, period):
+    super().__init__()
     self.period = period
-    self.sma = SimpleMovingAverage(period, dtype, shape)
-    self.initial_state = (
-      tf.fill(shape, math.nan),
-      self.sma.initial_state
+    self.sma = SimpleMovingAverage(period)
+
+  def initial_state(self, value):
+    return (
+      tf.zeros(tf.shape(value), dtype=value.dtype),
+      self.sma.initial_state(value),
+      tf.constant(0)
     )
 
-  def step(self, value, last_rma, last_sma_state):
+  def step(self, value, last_rma, last_sma_state, iteration):
     def warmup():
       return self.sma(value, state=last_sma_state, streamable=False)
 
@@ -66,6 +70,9 @@ class RollingMovingAverage(Streamable):
       return new_rma, last_sma_state
 
     new_rma, new_sma_state = tf.cond(
-      tf.reduce_any(tf.is_nan(last_rma)), warmup, nominal)
+      iteration < self.period,
+      warmup,
+      nominal
+    )
 
-    return new_rma, (new_rma, new_sma_state)
+    return new_rma, (new_rma, new_sma_state, iteration + 1)

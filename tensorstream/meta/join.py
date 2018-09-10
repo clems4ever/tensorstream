@@ -1,26 +1,27 @@
-import tensorflow as tf
+from tensorstream.streamable import MetaStreamable
 
-from tensorstream.streamable import Streamable
-
-class Join(Streamable):
+class Join(MetaStreamable):
   def __init__(self, *operators):
     super().__init__()
     self.operators = operators
-    self.dtype = tuple(op.dtype for op in self.operators)
-    self.shape = tuple(op.shape for op in self.operators)
-    self.initial_state = tuple(op.initial_state for op in self.operators)
 
-  def step(self, *inputs_and_states):
+  def initial_state(self, *inputs):
+    initial_states = []
+    op_in = zip(self.operators, inputs)
+    for op, inp in op_in:
+      if isinstance(inp, (list, tuple)):
+        initial_states.append(op.initial_state(*inp))
+      else:
+        initial_states.append(op.initial_state(inp))
+    return tuple(initial_states)
+
+  def step(self, inputs, states):
     outputs = []
     next_states = []
-    op_len = len(self.operators)
-
-    inputs = inputs_and_states[:op_len]
-    states = inputs_and_states[op_len:]
-
-    for i in range(op_len):
-      output, next_state = self.operators[i](
-        inputs[i], states[i], streamable=False)
+    op_in_st = zip(self.operators, inputs, states)
+    for op, inputs_, state in op_in_st:
+      output, next_state = op(
+        inputs_, state, streamable=False)
       outputs.append(output)
       next_states.append(next_state)
     return tuple(outputs), tuple(next_states)

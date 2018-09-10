@@ -1,10 +1,11 @@
-import tensorflow as tf
-from tensorstream.meta import Compose
+from tensorstream.common.set_during import SetDuring
 from tensorstream.finance.moving_average_crossover import SimpleMovingAverageCrossover
 from tensorstream.finance.signals.zero_crossover_signal import ZeroCrossoverSignal
+from tensorstream.meta.compose import Compose
 
-def SimpleMovingAverageCrossoverSignal(slow, fast, dtype=tf.float32, shape=()):
+def SimpleMovingAverageCrossoverSignal(slow, fast):
   return Compose(
-    ZeroCrossoverSignal(dtype=dtype, shape=shape),
-    SimpleMovingAverageCrossover(slow, fast, dtype=dtype, shape=shape)
+    SetDuring(0, slow),
+    ZeroCrossoverSignal(),
+    SimpleMovingAverageCrossover(slow, fast)
   )

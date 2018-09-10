@@ -11,7 +11,7 @@ class MACDSignalSpec(TestCase):
       self.from_test_res('macd_signals.ods', __file__))
   
   def test_single_dim(self):
-    s = self.sheets['single_dim'].fillna(0.0)
+    s = self.sheets['Sheet1']
     prices_ts = s['Close']
 
     expected_signals = s['Trade Signals']
@@ -28,19 +28,3 @@ class MACDSignalSpec(TestCase):
     np.testing.assert_almost_equal(output_ts, 
       expected_signals.values, decimal=3)
 
-  def test_multi_dim(self):
-    s = self.sheets['multi_dim'].fillna(0.0)
-    prices_ts = s[['Close 0', 'Close 1']]
-    expected_signals = s[['Trade Signals 0', 'Trade Signals 1']]
- 
-    signal = MACDSignal(26, 12, 9, shape=(2,))
-    prices = tf.placeholder(tf.float32, shape=[None, 2])
-    signals_ts, _ = signal(prices)
-
-    with tf.Session() as sess:
-      output_ts = sess.run(signals_ts, {
-        prices: prices_ts
-      })
-
-    np.testing.assert_almost_equal(output_ts, 
-      expected_signals.values, decimal=3)

@@ -15,25 +15,11 @@ class MovingStandardDeviationSpec(TestCase):
     values = tf.placeholder(tf.float32)
     volatility_ts, _ = volatility(values)
 
-    inputs = self.sheets['single_dim']
+    inputs = self.sheets['Sheet1']
 
     with tf.Session() as sess:
       output = sess.run(volatility_ts, { values: inputs['Value'] })
 
     np.testing.assert_almost_equal(output,
-      inputs['Volatility'].values, decimal=3)
+      inputs['mstdev'].values, decimal=3)
 
-  def test_moving_standard_deviation_multidim(self):
-    volatility = MovingStandardDeviation(10, shape=(2,))
-    values = tf.placeholder(tf.float32, shape=(None, 2))
-    volatility_ts, _ = volatility(values)
-
-    inputs = self.sheets['multi_dim']
-    data = inputs[['Value 1', 'Value 2']]
-    expected = inputs[['Volatility 1', 'Volatility 2']]
-
-    with tf.Session() as sess:
-      output = sess.run(volatility_ts, { values: data })
-
-    np.testing.assert_almost_equal(output,
-      expected.values, decimal=3)

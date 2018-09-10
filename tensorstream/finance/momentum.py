@@ -1,11 +1,13 @@
-import tensorflow as tf
-
-from tensorstream.meta import Compose, Join, Sub, Fork, Identity
+from tensorstream.common.common import Sub, Fork, Identity
 from tensorstream.common.lag import Lag
+from tensorstream.common.set_during import SetDuring
+from tensorstream.meta.compose import Compose
+from tensorstream.meta.join import Join
 
-def Momentum(period, dtype=tf.float32, shape=()):
+def Momentum(period):
   return Compose(
-    Sub(dtype=dtype, shape=shape),
-    Join(Identity(dtype=dtype, shape=shape), Lag(period=period, dtype=dtype, shape=shape)),
-    Fork(2, dtype=dtype, shape=shape),
+    SetDuring(0.0, period),
+    Sub(),
+    Join(Identity(), Lag(period)),
+    Fork(2),
   )

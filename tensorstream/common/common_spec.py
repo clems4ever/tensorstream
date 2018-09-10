@@ -2,9 +2,9 @@ import numpy as np
 import tensorflow as tf
 import unittest
 
-from tensorstream.meta import Add, Sub, Mul, Fork
-from tensorstream.meta import Identity
-from tensorstream.meta import Select, Positive, Negative
+from tensorstream.common.common import Add, Sub, Mul, Fork
+from tensorstream.common.common import Identity
+from tensorstream.common.common import Select, Positive, Negative
 
 class CommonSpec(unittest.TestCase):
   def setUp(self):
@@ -20,7 +20,7 @@ class CommonSpec(unittest.TestCase):
     ])
 
   def test_sub(self):
-    sub_op = Sub(tf.int32)
+    sub_op = Sub()
     model, _ = sub_op(inputs=(self.values1, self.values2))
 
     with tf.Session() as sess:
@@ -29,8 +29,8 @@ class CommonSpec(unittest.TestCase):
     expected = [-2, -1, 3, -2, 4, 8]
     np.testing.assert_equal(data, expected)
 
-  def test_sub_multi_dim(self):
-    sub_op = Sub(dtype=tf.int32, shape=[2])
+  def test_sub_two_dim(self):
+    sub_op = Sub()
     model, _ = sub_op(inputs=(self.values1_m, self.values2_m))
 
     with tf.Session() as sess:
@@ -40,7 +40,7 @@ class CommonSpec(unittest.TestCase):
     np.testing.assert_equal(data, expected)
 
   def test_add(self):
-    add_op = Add(tf.int32)
+    add_op = Add()
     model, _ = add_op(inputs=(self.values1, self.values2))
 
     with tf.Session() as sess:
@@ -49,8 +49,8 @@ class CommonSpec(unittest.TestCase):
     expected = [4, 7, 7, 14, 10, 10]
     np.testing.assert_equal(data, expected)
 
-  def test_add_multi_dim(self):
-    add_op = Add(tf.int32, shape=[2])
+  def test_add_two_dim(self):
+    add_op = Add()
     model, _ = add_op(inputs=(self.values1_m, self.values2_m))
 
     with tf.Session() as sess:
@@ -60,7 +60,7 @@ class CommonSpec(unittest.TestCase):
     np.testing.assert_equal(data, expected)
     
   def test_mul(self):
-    mul_op = Mul(tf.int32)
+    mul_op = Mul()
     model, _ = mul_op(inputs=(self.values1, self.values2))
 
     with tf.Session() as sess:
@@ -69,8 +69,8 @@ class CommonSpec(unittest.TestCase):
     expected = [3, 12, 10, 48, 21, 9]
     np.testing.assert_equal(data, expected)
 
-  def test_mul_multi_dim(self):
-    mul_op = Mul(tf.int32, shape=[2])
+  def test_mul_two_dim(self):
+    mul_op = Mul()
     model, _ = mul_op(inputs=(self.values1_m, self.values2_m))
 
     with tf.Session() as sess:
@@ -86,7 +86,7 @@ class CommonSpec(unittest.TestCase):
     np.testing.assert_equal(data, expected)
 
   def test_fork(self):
-    fork_op = Fork(3, tf.int32)
+    fork_op = Fork(3)
     model, _ = fork_op(self.values1)
 
     with tf.Session() as sess:
@@ -97,8 +97,21 @@ class CommonSpec(unittest.TestCase):
     np.testing.assert_equal(data[1], expected)
     np.testing.assert_equal(data[2], expected)
 
+  def test_fork_two_dim(self):
+    fork_op = Fork(3)
+    values = [[1, 2], [3, 4], [5, 6], [6, 7], [7, 8], [9, 10]]
+    model, _ = fork_op(tf.constant(values))
+
+    with tf.Session() as sess:
+      data = sess.run(model)
+
+    expected = values
+    np.testing.assert_equal(data[0], expected)
+    np.testing.assert_equal(data[1], expected)
+    np.testing.assert_equal(data[2], expected)
+
   def test_identity(self):
-    id_op = Identity(tf.int32)
+    id_op = Identity()
     model, _ = id_op(self.values1)
 
     with tf.Session() as sess:
@@ -107,8 +120,8 @@ class CommonSpec(unittest.TestCase):
     expected = [1, 3, 5, 6, 7, 9]
     np.testing.assert_equal(data, expected)
 
-  def test_identity_multi_dim(self):
-    id_op = Identity(tf.int32, shape=[2])
+  def test_identity_two_dim(self):
+    id_op = Identity()
     model, _ = id_op(self.values1_m)
 
     with tf.Session() as sess:
@@ -119,8 +132,8 @@ class CommonSpec(unittest.TestCase):
     ]
     np.testing.assert_equal(data, expected)
 
-  def test_select(self):
-    select_op = Select([0, 2], dtype=[tf.int32, tf.int32], shape=[(), ()])
+  def test_select_list(self):
+    select_op = Select([0, 2])
     model, _ = select_op(inputs=(self.values1, self.values2, self.values3))
 
     with tf.Session() as sess:
@@ -133,8 +146,8 @@ class CommonSpec(unittest.TestCase):
     np.testing.assert_equal(data[0], expected1)
     np.testing.assert_equal(data[1], expected2)
 
-  def test_select_multi_dim(self):
-    select_op = Select([0, 2], dtype=[tf.int32, tf.int32], shape=[[2], []])
+  def test_select_two_dim(self):
+    select_op = Select([0, 2])
     model, _ = select_op(inputs=(self.values1_m, self.values2, self.values3))
 
     with tf.Session() as sess:
@@ -152,7 +165,7 @@ class CommonSpec(unittest.TestCase):
   def test_positive(self):
     values1 = tf.constant([1, -3, 5, -6, 7, 9])
 
-    op = Positive(tf.int32)
+    op = Positive()
     model, _ = op(values1)
 
     with tf.Session() as sess:
@@ -161,10 +174,10 @@ class CommonSpec(unittest.TestCase):
     expected1 = [1, 0, 1, 0, 1, 1]
     np.testing.assert_equal(data, expected1)
 
-  def test_positive_multi_dim(self):
+  def test_positive_two_dim(self):
     values1 = tf.constant([[1, 3], [-3, 2], [5, -3], [-6, -3], [7, -2], [1, 9]])
 
-    op = Positive(tf.int32, shape=[2])
+    op = Positive()
     model, _ = op(values1)
 
     with tf.Session() as sess:
@@ -176,7 +189,7 @@ class CommonSpec(unittest.TestCase):
   def test_negative(self):
     values1 = tf.constant([1, -3, 5, -6, 7, 9])
 
-    op = Negative(tf.int32)
+    op = Negative()
     model, _ = op(values1)
 
     with tf.Session() as sess:
@@ -185,10 +198,10 @@ class CommonSpec(unittest.TestCase):
     expected1 = [0, 1, 0, 1, 0, 0]
     np.testing.assert_equal(data, expected1)
 
-  def test_negative_multi_dim(self):
+  def test_negative_two_dim(self):
     values1 = tf.constant([[1, 3], [-3, 2], [5, -3], [-6, -3], [7, -2], [1, 9]])
 
-    op = Negative(tf.int32, shape=[2])
+    op = Negative()
     model, _ = op(values1)
 
     with tf.Session() as sess:

@@ -1,35 +1,62 @@
 import numpy as np
 import tensorflow as tf
 
-from tensorstream.meta.compose import Compose
-from tensorstream.meta.factory import Factory
-from tensorstream.meta.map import Map
 from tensorstream.meta.ffill import FFill
-from tensorstream.finance.moving_average import SimpleMovingAverage
+from tensorstream.meta.map import Map
+from tensorstream.streamable import Streamable
 from tensorstream.tests import TestCase
+
+class Square(Streamable):
+  def __init__(self):
+    super().__init__(tf.constant(0.0))
+
+  def step(self, x, prev_x):
+    return prev_x * prev_x, x
+
+class Fork(Streamable):
+  def __init__(self):
+    super().__init__(tf.constant(0.0))
+
+  def step(self, x, prev_x):
+    return (prev_x, prev_x), x
 
 class MapSpec(TestCase):
   def setUp(self):
     self.sheets = self.read_ods(
       self.from_test_res('map.ods', __file__))
 
-  def test_map(self):
-    s = self.sheets['Sheet1']
-
-    values = s[['Value 0', 'Value 1', 'Value 2']].replace(r'\s*', np.nan, regex=True)
-    sma_outputs = s[['SMA4 0', 'SMA4 1', 'SMA4 2']].replace(r'\s*', np.nan, regex=True)
-
-    values_ph = tf.placeholder(tf.float32)
-    v = Map(SimpleMovingAverage(4), size=3)
-    o, _ = v(values_ph)
+  def test_map_simple(self):
+    sheet = self.sheets['Sheet1']
+    x = tf.placeholder(tf.float32)
+    v = Map(Square(), size=3)
+    o, _ = v(x)
 
     with tf.Session() as sess:
       output = sess.run(o, {
-        values_ph: values
+        x: sheet[['x0', 'x1', 'x2']]
       })
 
+    expected = sheet[['s0', 's1', 's2']]
+
     np.testing.assert_almost_equal(output,
-      sma_outputs.values, decimal=3)
+      expected.values, decimal=3)
+
+  def test_map_multi_output(self):
+    sheet = self.sheets['Sheet2']
+    x = tf.placeholder(tf.float32)
+    v = Map(Fork(), size=3)
+    o, _ = v(x)
+
+    with tf.Session() as sess:
+      output = sess.run(o, {
+        x: sheet[['x0', 'x1', 'x2']]
+      })
+
+    assert(len(output) == 2)
+    np.testing.assert_almost_equal(output[0],
+      sheet[['y0', 'y1', 'y2']].values, decimal=3)
+    np.testing.assert_almost_equal(output[1],
+      sheet[['y0', 'y1', 'y2']].values, decimal=3)
 
 class MapFFillSpec(TestCase):
   def setUp(self):
@@ -37,13 +64,11 @@ class MapFFillSpec(TestCase):
       self.from_test_res('map.ods', __file__))
 
   def test_map_ffill(self):
-    s = self.sheets['map_ffill']
-
-    values = s[['Value 0', 'Value 1', 'Value 2']].replace(r'\s*', np.nan, regex=True)
-    sma_outputs = s[['SMA4 0', 'SMA4 1', 'SMA4 2']].replace(r'\s*', np.nan, regex=True)
+    sheet = self.sheets['map_ffill']
+    values = sheet[['x0', 'x1', 'x2']]
 
     values_ph = tf.placeholder(tf.float32)
-    v = Map(FFill(SimpleMovingAverage(4)), size=3)
+    v = Map(FFill(Square()), size=3)
     o, _ = v(values_ph)
 
     with tf.Session() as sess:
@@ -51,5 +76,6 @@ class MapFFillSpec(TestCase):
         values_ph: values
       })
 
+    expected = sheet[['y0', 'y1', 'y2']]
     np.testing.assert_almost_equal(output,
-      sma_outputs.values, decimal=3)
+      expected, decimal=3)

@@ -9,7 +9,7 @@ class HeikinAshiSpec(TestCase):
     self.input_ts = self.read_ods(
       self.from_test_res('heikin_ashi.ods', __file__))["Sheet1"]
 
-  def test_basic(self):
+  def test_heikin_ashi(self):
     heikinashi_op = HeikinAshi()
     
     close_p = tf.placeholder(tf.float32)
