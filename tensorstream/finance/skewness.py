@@ -10,9 +10,10 @@ class Skewness(Streamable):
 
   def initial_state(self, return_):
     shape = self.concat([self.period], tf.shape(return_))
-    return tf.zeros(shape, dtype=return_.dtype)
+    return (tf.zeros(shape, dtype=return_.dtype), tf.constant(0))
 
-  def step(self, return_, last_returns):
+  def step(self, return_,
+    last_returns, iteration):
     def compute_skewness(values):
       mean, var = tf.nn.moments(values, axes=0)
       stddev = tf.sqrt(var)
@@ -20,8 +21,8 @@ class Skewness(Streamable):
     
     new_returns = roll(return_, last_returns)
     skewness = tf.cond(
-      tf.reduce_any(tf.equal(new_returns, 0)),
+      tf.less(iteration, self.period),
       lambda: tf.zeros(tf.shape(return_), dtype=return_.dtype),
       lambda: compute_skewness(new_returns))
 
-    return skewness, new_returns
+    return skewness, (new_returns, iteration + 1)
