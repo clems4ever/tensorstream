@@ -17,12 +17,16 @@ class SharpeRatio(Streamable):
     def compute_sharpe_ratio(adjusted_values):
       mean, var = tf.nn.moments(adjusted_values, axes=0)
       stddev = tf.sqrt(var)
-      return mean / stddev
+      return tf.cond(
+        tf.equal(stddev, 0.0),
+        lambda: 0.0,
+        lambda: mean / stddev
+      )
     
     new_adjusted_values = roll(return_ - risk_free_rate, last_adjusted_values)
     sharpe_ratio = tf.cond(
       tf.less(iteration, self.period),
-      lambda: tf.zeros(tf.shape(return_), dtype=return_.dtype),
+      lambda: compute_sharpe_ratio(new_adjusted_values[0:iteration + 1]),
       lambda: compute_sharpe_ratio(new_adjusted_values))
 
     return sharpe_ratio, (new_adjusted_values, iteration + 1)
