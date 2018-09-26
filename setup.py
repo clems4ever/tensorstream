@@ -1,16 +1,13 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
-  name='TensorStream',
+  name='tensorstream',
   version='0.0.1',
-  packages=[
-    'tensorstream',
-    'tensorstream.common',
-    'tensorstream.finance',
-    'tensorstream.helpers',
-    'tensorstream.meta',
-  ],
+  author='Clement Michaud',
+  author_email='clement.michaud34@gmail.com',
   license='All rights reserved to Clement Michaud',
+
+  packages=find_packages(exclude=['*_spec.py']),
   long_description=open('README').read(),
   install_requires=[
     "tensorflow==1.5.0",

@@ -3,7 +3,7 @@
 build/
 dist/
 
-TensorStream.egg-info/
+tensorstream.egg-info/
 
 .venv
 __pycache__/
