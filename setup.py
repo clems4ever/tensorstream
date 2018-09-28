@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
   name='tensorstream',
-  version='0.0.1',
+  version='0.0.2',
   author='Clement Michaud',
   author_email='clement.michaud34@gmail.com',
   license='All rights reserved to Clement Michaud',
@@ -12,11 +12,5 @@ setup(
   install_requires=[
     "tensorflow==1.5.0",
     "pandas==0.23.4"
-  ],
-  extras_require={
-    "dev": [
-      "pytest",
-      "pyexcel-ods==0.5.3"
-    ]
-  }
+  ]
 )
