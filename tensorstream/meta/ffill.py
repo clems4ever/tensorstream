@@ -12,16 +12,16 @@ class FFill(MetaStreamable):
     super().__init__()
     self.operator = operator
 
-  def initial_state(self, inputs):
-    outputs, _ = self.operator(inputs, streamable=False)
+  def properties(self, *inputs):
+    placeholders, init_state = self.operator.properties(*inputs)
     zeros = map_fn(
-      outputs,
-      [outputs],
-      lambda o: tf.zeros(tf.shape(o), dtype=tf.convert_to_tensor(o).dtype)
+      placeholders,
+      [placeholders],
+      lambda p: tf.zeros(p.shape, dtype=p.dtype)
     )
-    return (
+    return placeholders, (
       zeros, # previous output
-      self.operator.initial_state(inputs)
+      init_state
     )
 
   def step(self, inputs, previous_state):
@@ -36,8 +36,13 @@ class FFill(MetaStreamable):
       inputs_any_zero,
       lambda: previous_state[0],
       lambda: next_output)
+    
+    if isinstance(inputs, (tuple, list)):
+      ph, init_state = self.operator.properties(*inputs)
+    else:
+      ph, init_state = self.operator.properties(inputs)
 
-    if self.operator.initial_state(inputs) == ():
+    if init_state == ():
       selected_next_state = ()
     else:
       selected_next_state = tf.cond(

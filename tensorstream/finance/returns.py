@@ -8,9 +8,9 @@ class Return(Streamable):
     super().__init__()
     self.period = period
 
-  def initial_state(self, value):
-    shape = self.concat([self.period], tf.shape(value))
-    return (
+  def properties(self, value):
+    shape = self.concat([self.period], value.shape)
+    return value, (
       tf.constant(0),
       tf.zeros(shape, dtype=value.dtype)
     )
@@ -34,9 +34,9 @@ class LogarithmicReturn(Streamable):
     super().__init__()
     self.period = period
 
-  def initial_state(self, value):
-    shape = self.concat([self.period], tf.shape(value))
-    return (
+  def properties(self, value):
+    shape = self.concat([self.period], value.shape)
+    return value, (
       tf.constant(0),
       tf.zeros(shape, dtype=value.dtype)
     )

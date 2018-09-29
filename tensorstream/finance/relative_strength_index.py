@@ -9,9 +9,10 @@ class RelativeStrengthIndex(Streamable):
     self.period = period
     self.buffer = Lag(period)
 
-  def initial_state(self, value):
-    return (
-      self.buffer.initial_state(value),
+  def properties(self, value):
+    buffer_ph, buffer_init_state = self.buffer.properties(value)
+    return value, (
+      buffer_init_state,
       tf.constant(0), # iteration
       tf.constant(0.0), # average gain
       tf.constant(0.0) # average loss
@@ -61,10 +62,10 @@ class RelativeStrengthIndex(Streamable):
     def warmup():
       return 0.0, 0.0, 0.0
     
-    new_average_gain, new_average_loss, rsi = tf.case({
-      tf.equal(iteration, self.period): compute_first_rsi,
-      tf.less(iteration, self.period): warmup,
-    }, exclusive=True, default=compute_default_rsi)
+    new_average_gain, new_average_loss, rsi = tf.case((
+      (tf.equal(iteration, self.period), compute_first_rsi),
+      (tf.less(iteration, self.period), warmup),
+    ), exclusive=True, default=compute_default_rsi)
 
     _, buffer_state = self.buffer(value, state=buffer_state, streamable=False)
 

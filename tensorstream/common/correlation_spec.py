@@ -16,7 +16,7 @@ class SimpleCorrelationSpec(TestCase):
     corr5 = Correlation(5)
     returns0 = tf.placeholder(tf.float32)
     returns1 = tf.placeholder(tf.float32)
-    corr5_ts, _ = corr5(inputs=(returns0, returns1))
+    corr5_ts, _, _ = corr5(inputs=(returns0, returns1))
     
     with tf.Session() as sess:
       output = sess.run(corr5_ts, {
@@ -37,7 +37,7 @@ class CrossCorrelationSpec(TestCase):
     corr5 = CrossCorrelation(period=5, lag=2)
     returns0 = tf.placeholder(tf.float32)
     returns1 = tf.placeholder(tf.float32)
-    corr5_ts, _ = corr5(inputs=(returns0, returns1))
+    corr5_ts, _, _ = corr5(inputs=(returns0, returns1))
     
     with tf.Session() as sess:
       output = sess.run(corr5_ts, {
@@ -57,7 +57,7 @@ class AutoCorrelationSpec(TestCase):
     s = self.sheets['Sheet1'].replace(r'\s*', np.nan, regex=True)
     corr5 = AutoCorrelation(period=5, lag=2)
     returns0 = tf.placeholder(tf.float32)
-    corr5_ts, _ = corr5(returns0)
+    corr5_ts, _, _ = corr5(returns0)
     
     with tf.Session() as sess:
       output = sess.run(corr5_ts, {

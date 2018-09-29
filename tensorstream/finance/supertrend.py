@@ -9,9 +9,10 @@ class Supertrend(Streamable):
     self.factor = factor
     self.atr = AverageTrueRange(atr_period)
 
-  def initial_state(self, close_price, low_price, high_price):
-    return (
-      self.atr.initial_state(close_price, low_price, high_price),
+  def properties(self, close_price, low_price, high_price):
+    atr_ph, atr_init_state = self.atr.properties(close_price, low_price, high_price)
+    return close_price, (
+      atr_init_state,
       tf.constant(0.0),
       tf.constant(0.0),
       tf.constant(0.0),

@@ -7,9 +7,11 @@ from tensorstream.tests import TestCase
 
 class MultiplyBy(Streamable):
   def __init__(self, nb):
-    super().__init__(0.0)
+    super().__init__()
     self.nb = nb
 
+  def properties(self, x):
+    return x, tf.constant(0.0)
   def step(self, x, prev_x):
     return prev_x * self.nb, x
 

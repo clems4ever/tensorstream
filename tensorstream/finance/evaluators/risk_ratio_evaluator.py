@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+from tensorstream.placeholder import Placeholder
 from tensorstream.streamable import Streamable
 from tensorstream.finance.moving_standard_deviation import MovingStandardDeviation
 
@@ -12,15 +13,21 @@ class RiskRatioEvaluator(Streamable):
     self.limit_factor = limit_factor
     self.max_bet_duration = max_bet_duration
 
-  def initial_state(self, low, high, close, signal):
+  def properties(self, low, high, close, signal):
+    msd_ph, msd_init_state = self.msd_op.properties(close)
     return (
+        Placeholder(tf.int32, ()),
+        Placeholder(tf.int32, ()),
+        Placeholder(tf.float32, ()),
+        Placeholder(tf.int32, ())
+      ), (
         tf.constant(0.0), # stop price
         tf.constant(0.0), # limit price
         tf.constant(0.0), # buy price
         tf.constant(0), # bet_duration
         tf.constant(0), # successful bets
         tf.constant(0), # total bets
-        self.msd_op.initial_state(close)
+        msd_init_state
     )
 
   def step(self, low, high, close, signal,
@@ -132,7 +139,7 @@ class RiskRatioEvaluator(Streamable):
     if not self.max_bet_duration is None:
       cases.append((max_bet_duration_reached, sell_after_max_bet_duration_reached))
     
-    next_state  = tf.case(cases, default=wait, exclusive=False)
+    next_state = tf.case(cases, default=wait, exclusive=False)
 
     return (
       next_state[4],

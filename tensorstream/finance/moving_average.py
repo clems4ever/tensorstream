@@ -8,9 +8,9 @@ class SimpleMovingAverage(Streamable):
     super().__init__()
     self.period = period
 
-  def initial_state(self, value):
-    shape = self.concat([self.period], tf.shape(value))
-    return (tf.constant(0), tf.zeros(shape))
+  def properties(self, value):
+    shape = self.concat([self.period], value.shape)
+    return value, (tf.constant(0), tf.zeros(dtype=value.dtype, shape=shape))
 
   def step(self, value, iteration, buffer_):
     new_buffer = roll(value, buffer_)
@@ -26,10 +26,11 @@ class ExponentialMovingAverage(Streamable):
     self.k = 2.0 / (period + 1.0)
     self.sma = SimpleMovingAverage(period)
 
-  def initial_state(self, value):
-    return (
-      tf.zeros(tf.shape(value), dtype=value.dtype),
-      self.sma.initial_state(value),
+  def properties(self, value):
+    ph, init_state = self.sma.properties(value)
+    return value, (
+      tf.zeros(value.shape, dtype=value.dtype),
+      init_state,
       tf.constant(0)
     )
 
@@ -54,10 +55,11 @@ class RollingMovingAverage(Streamable):
     self.period = period
     self.sma = SimpleMovingAverage(period)
 
-  def initial_state(self, value):
-    return (
-      tf.zeros(tf.shape(value), dtype=value.dtype),
-      self.sma.initial_state(value),
+  def properties(self, value):
+    ph, init_state = self.sma.properties(value)
+    return value, (
+      tf.zeros(value.dtype, dtype=value.dtype),
+      init_state,
       tf.constant(0)
     )
 
@@ -74,5 +76,4 @@ class RollingMovingAverage(Streamable):
       warmup,
       nominal
     )
-
     return new_rma, (new_rma, new_sma_state, iteration + 1)

@@ -21,7 +21,7 @@ class CommonSpec(unittest.TestCase):
 
   def test_sub(self):
     sub_op = Sub()
-    model, _ = sub_op(inputs=(self.values1, self.values2))
+    model, _, _ = sub_op(inputs=(self.values1, self.values2))
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -31,7 +31,7 @@ class CommonSpec(unittest.TestCase):
 
   def test_sub_two_dim(self):
     sub_op = Sub()
-    model, _ = sub_op(inputs=(self.values1_m, self.values2_m))
+    model, _, _ = sub_op(inputs=(self.values1_m, self.values2_m))
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -41,7 +41,7 @@ class CommonSpec(unittest.TestCase):
 
   def test_add(self):
     add_op = Add()
-    model, _ = add_op(inputs=(self.values1, self.values2))
+    model, _, _ = add_op(inputs=(self.values1, self.values2))
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -51,7 +51,7 @@ class CommonSpec(unittest.TestCase):
 
   def test_add_two_dim(self):
     add_op = Add()
-    model, _ = add_op(inputs=(self.values1_m, self.values2_m))
+    model, _, _ = add_op(inputs=(self.values1_m, self.values2_m))
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -61,7 +61,7 @@ class CommonSpec(unittest.TestCase):
     
   def test_mul(self):
     mul_op = Mul()
-    model, _ = mul_op(inputs=(self.values1, self.values2))
+    model, _, _ = mul_op(inputs=(self.values1, self.values2))
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -71,7 +71,7 @@ class CommonSpec(unittest.TestCase):
 
   def test_mul_two_dim(self):
     mul_op = Mul()
-    model, _ = mul_op(inputs=(self.values1_m, self.values2_m))
+    model, _, _ = mul_op(inputs=(self.values1_m, self.values2_m))
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -87,7 +87,7 @@ class CommonSpec(unittest.TestCase):
 
   def test_fork(self):
     fork_op = Fork(3)
-    model, _ = fork_op(self.values1)
+    model, _, _ = fork_op(self.values1)
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -100,7 +100,7 @@ class CommonSpec(unittest.TestCase):
   def test_fork_two_dim(self):
     fork_op = Fork(3)
     values = [[1, 2], [3, 4], [5, 6], [6, 7], [7, 8], [9, 10]]
-    model, _ = fork_op(tf.constant(values))
+    model, _, _ = fork_op(tf.constant(values))
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -112,7 +112,7 @@ class CommonSpec(unittest.TestCase):
 
   def test_identity(self):
     id_op = Identity()
-    model, _ = id_op(self.values1)
+    model, _, _ = id_op(self.values1)
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -122,7 +122,7 @@ class CommonSpec(unittest.TestCase):
 
   def test_identity_two_dim(self):
     id_op = Identity()
-    model, _ = id_op(self.values1_m)
+    model, _, _ = id_op(self.values1_m)
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -134,7 +134,7 @@ class CommonSpec(unittest.TestCase):
 
   def test_select_list(self):
     select_op = Select([0, 2])
-    model, _ = select_op(inputs=(self.values1, self.values2, self.values3))
+    model, _, _ = select_op(inputs=(self.values1, self.values2, self.values3))
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -148,7 +148,7 @@ class CommonSpec(unittest.TestCase):
 
   def test_select_two_dim(self):
     select_op = Select([0, 2])
-    model, _ = select_op(inputs=(self.values1_m, self.values2, self.values3))
+    model, _, _ = select_op(inputs=(self.values1_m, self.values2, self.values3))
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -166,7 +166,7 @@ class CommonSpec(unittest.TestCase):
     values1 = tf.constant([1, -3, 5, -6, 7, 9])
 
     op = Positive()
-    model, _ = op(values1)
+    model, _, _ = op(values1)
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -178,7 +178,7 @@ class CommonSpec(unittest.TestCase):
     values1 = tf.constant([[1, 3], [-3, 2], [5, -3], [-6, -3], [7, -2], [1, 9]])
 
     op = Positive()
-    model, _ = op(values1)
+    model, _, _ = op(values1)
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -190,7 +190,7 @@ class CommonSpec(unittest.TestCase):
     values1 = tf.constant([1, -3, 5, -6, 7, 9])
 
     op = Negative()
-    model, _ = op(values1)
+    model, _, _ = op(values1)
 
     with tf.Session() as sess:
       data = sess.run(model)
@@ -202,7 +202,7 @@ class CommonSpec(unittest.TestCase):
     values1 = tf.constant([[1, 3], [-3, 2], [5, -3], [-6, -3], [7, -2], [1, 9]])
 
     op = Negative()
-    model, _ = op(values1)
+    model, _, _ = op(values1)
 
     with tf.Session() as sess:
       data = sess.run(model)

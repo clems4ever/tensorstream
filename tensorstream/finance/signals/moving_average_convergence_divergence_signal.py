@@ -1,3 +1,4 @@
+import tensorflow as tf
 from tensorstream.meta.compose import Compose
 from tensorstream.common.common import Select
 from tensorstream.common.set_during import SetDuring
@@ -6,8 +7,8 @@ from tensorstream.finance.moving_average_convergence_divergence import MovingAve
 
 def MovingAverageConvergenceDivergenceSignal(slow, fast, macd):
   return Compose(
-    SetDuring(0, slow + macd - 2),
+    SetDuring(tf.constant(0), slow + macd - 2),
     ZeroCrossoverSignal(),
-    Select(4),
+    Select(4, dtype=tf.float32, shape=()),
     MACD(slow=slow, fast=fast, macd=macd)
   )

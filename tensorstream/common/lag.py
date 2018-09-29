@@ -8,12 +8,11 @@ class Lag(Streamable):
     super().__init__()
     self.period = period
 
-  def initial_state(self, value):
-    return tf.zeros(
-      self.concat([self.period], tf.shape(value))
-    )
+  def step(self, value, buffer_state=None):
+    if buffer_state is None:
+      shape = self.concat([self.period], tf.shape(value))
+      buffer_state = tf.zeros(shape, value.dtype)
 
-  def step(self, value, buffer_state):
     new_value = buffer_state[-1]
     new_buffer_state = roll(value, buffer_state)
-    return new_value, new_buffer_state
+    return new_value, new_buffer_state, buffer_state

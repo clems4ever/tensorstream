@@ -1,15 +1,16 @@
 import tensorflow as tf
 
+from tensorstream.placeholder import Placeholder
 from tensorstream.streamable import Streamable
 
 class ZeroCrossoverSignal(Streamable):
   def __init__(self):
     super().__init__()
 
-  def initial_state(self, value):
-    return (
+  def properties(self, value):
+    return Placeholder(tf.int32, ()), (
       tf.constant(True),
-      tf.zeros(tf.shape(value), dtype=value.dtype)
+      tf.zeros(value.shape, dtype=value.dtype)
     )
 
   def step(self, value, is_warmup, last_value):

@@ -7,22 +7,22 @@ from tensorstream.meta.compose import Compose
 from tensorstream.tests import TestCase
 
 class Add(Streamable):
-  def __init__(self):
-    super().__init__()
+  def properties(self, x, y):
+    return x, ()
 
   def step(self, x, y):
     return x + y, ()
 
 class Square(Streamable):
-  def __init__(self):
-    super().__init__(tf.constant(0.0))
+  def properties(self, x):
+    return x, tf.constant(0.0)
 
   def step(self, x, prev_x):
     return prev_x * prev_x, x
 
 class Fork(Streamable):
-  def __init__(self):
-    super().__init__()
+  def properties(self, x):
+    return (x, x), ()
 
   def step(self, x):
     return (x, x), ()

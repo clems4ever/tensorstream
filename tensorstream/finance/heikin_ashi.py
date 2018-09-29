@@ -13,11 +13,11 @@ class HeikinAshi(Streamable):
   def __init__(self):
     super().__init__()
 
-  def initial_state(self, open_price, high_price, low_price, close_price):
+  def properties(self, open_price, high_price, low_price, close_price):
     # previous open and close are initialized to NaN for the first step
-    return (
-      tf.zeros(tf.shape(open_price), open_price.dtype),
-      tf.zeros(tf.shape(close_price), close_price.dtype)
+    return (open_price, high_price, low_price, close_price), (
+      tf.zeros(open_price.shape, open_price.dtype),
+      tf.zeros(close_price.shape, close_price.dtype)
     )
 
   def step(self, open_price, high_price, low_price, close_price,

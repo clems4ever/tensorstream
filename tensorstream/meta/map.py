@@ -9,15 +9,14 @@ class Map(MetaStreamable):
     self.size = size
     self.operator = operator
 
-  def initial_state(self, *inputs):
-    input0 = map_fn(inputs, [inputs], lambda x: x[0])
-    initial_state = self.operator.initial_state(*input0)
-  
+  def properties(self, *inputs):
+    placeholders, initial_state = self.operator.properties(*inputs)
+
     def dimensions(x):
       dim = tf.ones([tf.size(tf.shape(x))], dtype=tf.int32)
       return tf.concat([[self.size], dim], axis=0)
   
-    return map_fn(initial_state, [initial_state],
+    return placeholders, map_fn(initial_state, [initial_state],
       lambda x: tf.tile(tf.expand_dims(x, axis=0), dimensions(x)))
  
   def step(self, inputs, prev_state):

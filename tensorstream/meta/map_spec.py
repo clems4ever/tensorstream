@@ -7,26 +7,20 @@ from tensorstream.streamable import Streamable
 from tensorstream.tests import TestCase
 
 class Square(Streamable):
-  def __init__(self):
-    super().__init__(tf.constant(0.0))
-
+  def properties(self, x):
+    return x, tf.constant(0.0)
   def step(self, x, prev_x):
     return prev_x * prev_x, x
 
 class Fork(Streamable):
-  def __init__(self):
-    super().__init__(tf.constant(0.0))
-
+  def properties(self, x):
+    return (x, x), tf.constant(0.0)
   def step(self, x, prev_x):
     return (prev_x, prev_x), x
 
 class StateMultiDim(Streamable):
-  def __init__(self):
-    super().__init__()
-    
-  def initial_state(self, x):
-    return tf.zeros([2])
-    
+  def properties(self, x):
+    return x, tf.zeros([2])
   def step(self, x, prev_x):
     return prev_x, tf.fill([2], x)
 

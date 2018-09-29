@@ -11,7 +11,7 @@ class LagSpec(TestCase):
 
   def test_lag_single_dim(self):
     values = tf.placeholder(tf.float32)
-    buffer_ts, _ = Lag(3)(values)
+    buffer_ts, _, _ = Lag(3)(values)
 
     input_ts = self.sheets['single_dim']
 

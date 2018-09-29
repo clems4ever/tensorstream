@@ -5,15 +5,18 @@ class Join(MetaStreamable):
     super().__init__()
     self.operators = operators
 
-  def initial_state(self, *inputs):
+  def properties(self, *inputs):
     initial_states = []
+    placeholders = []
     op_in = zip(self.operators, inputs)
     for op, inp in op_in:
       if isinstance(inp, (list, tuple)):
-        initial_states.append(op.initial_state(*inp))
+        y, init_state = op.properties(*inp)
       else:
-        initial_states.append(op.initial_state(inp))
-    return tuple(initial_states)
+        y, init_state = op.properties(inp)
+      initial_states.append(init_state)
+      placeholders.append(y)
+    return tuple(placeholders), tuple(initial_states)
 
   def step(self, inputs, states):
     outputs = []

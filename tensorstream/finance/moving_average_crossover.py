@@ -1,3 +1,5 @@
+import tensorflow as tf
+
 from tensorstream.common.common import Sub, Fork
 from tensorstream.common.set_during import SetDuring
 from tensorstream.finance.moving_average import SimpleMovingAverage
@@ -6,14 +8,14 @@ from tensorstream.meta.join import Join
 
 def SimpleMovingAverageCrossover(slow, fast):
   return Compose(
-    Sub(),
+    Sub(tf.float32),
     Join(
       Compose(
         # We want 0.0 until index 'slow-1' of the timeseries
-        SetDuring(0.0, slow - 1),
+        SetDuring(tf.constant(0.0), slow - 1),
         SimpleMovingAverage(fast)
       ),
       SimpleMovingAverage(slow)
     ),
-    Fork(2)
+    Fork(2, tf.float32)
   )

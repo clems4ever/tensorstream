@@ -8,9 +8,12 @@ class SharpeRatio(Streamable):
     super().__init__()
     self.period = period
 
-  def initial_state(self, return_, risk_free_rate):
-    shape = self.concat([self.period], tf.shape(return_))
-    return (tf.zeros(shape, return_.dtype), tf.constant(0))
+  def properties(self, return_, risk_free_rate):
+    shape = self.concat([self.period], return_.shape)
+    return return_, (
+      tf.zeros(shape, return_.dtype),
+      tf.constant(0)
+    )
 
   def step(self, return_, risk_free_rate,
     last_adjusted_values, iteration):

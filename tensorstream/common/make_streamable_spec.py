@@ -11,7 +11,7 @@ class MakeStreamableSpec(unittest.TestCase):
 
     streamable = make_streamable(lambda x, y: x+y)
 
-    model, _ = streamable(inputs=(values1, values2))
+    model, _, _ = streamable(inputs=(values1, values2))
     with tf.Session() as sess:
       data = sess.run(model)
 
@@ -24,7 +24,7 @@ class MakeStreamableSpec(unittest.TestCase):
 
     streamable = make_streamable(lambda x, y: x + y)
 
-    model, _ = streamable(inputs=(values1, values2))
+    model, _, _ = streamable(inputs=(values1, values2))
     with tf.Session() as sess:
       data = sess.run(model)
 

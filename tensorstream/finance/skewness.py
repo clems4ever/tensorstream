@@ -8,9 +8,12 @@ class Skewness(Streamable):
     super().__init__()
     self.period = period
 
-  def initial_state(self, return_):
-    shape = self.concat([self.period], tf.shape(return_))
-    return (tf.zeros(shape, dtype=return_.dtype), tf.constant(0))
+  def properties(self, return_):
+    shape = self.concat([self.period], return_.shape)
+    return return_, (
+      tf.zeros(shape, dtype=return_.dtype),
+      tf.constant(0)
+    )
 
   def step(self, return_,
     last_returns, iteration):

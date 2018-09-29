@@ -6,9 +6,9 @@ from tensorstream.tests import TestCase
 
 class SetDuringSpec(TestCase):
   def test_set_during(self):
-    values = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    values = tf.constant([1, 2, 3, 4, 5, 6, 7, 8, 9])
     set_during = SetDuring(0, 4)
-    ts, _ = set_during(tf.constant(values))
+    ts, _, _ = set_during(values)
 
     with tf.Session() as sess:
       output = sess.run(ts)
