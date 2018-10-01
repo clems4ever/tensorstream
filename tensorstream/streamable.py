@@ -3,7 +3,6 @@ import functools
 
 from tensorstream.helpers.map_fn import map_fn
 from tensorstream.helpers.flatten import flatten
-from tensorstream.placeholder import Placeholder
 
 class Streamable:
   @staticmethod
@@ -20,12 +19,6 @@ class Streamable:
     return map_fn(
       values, [values], lambda val: val.dtype if isinstance(val, tf.Tensor) else tf.convert_to_tensor(val).dtype
     )
-
-  def _get_properties(self, inputs, provided_state=()):
-    if not isinstance(inputs, (list, tuple)):
-      inputs = (inputs,)
-    outputs, next_state, initial_state = self.step(*inputs, provided_state)
-    return outputs, initial_state
 
   def call_streamed(self, inputs_tensors, provided_state):
     """
@@ -67,7 +60,8 @@ class Streamable:
       )
 
       new_outputs = map_fn(outputs_i, [outputs_i, loop_outputs], lambda x, y: y.write(i, x))
-      # map_fn(loop_state, [loop_state, next_state], lambda x, y: tf.convert_to_tensor(y).set_shape(tf.convert_to_tensor(x).get_shape()))
+      map_fn(loop_state, [loop_state, next_state], lambda x, y: tf.convert_to_tensor(y).set_shape(
+        tf.convert_to_tensor(x).get_shape()))
       return (i + 1, loop_inputs, next_state, new_outputs)
 
     i0 = tf.constant(0)
@@ -85,8 +79,6 @@ class Streamable:
     if streamable:
       return self.call_streamed(inputs, state)
     else:
-      if state is None:
-        state = ()
       return self.forward_step(inputs, state) 
 
   def step(self, *inputs):

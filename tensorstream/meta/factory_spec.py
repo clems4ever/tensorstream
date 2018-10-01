@@ -10,10 +10,10 @@ class MultiplyBy(Streamable):
     super().__init__()
     self.nb = nb
 
-  def properties(self, x):
-    return x, tf.constant(0.0)
-  def step(self, x, prev_x):
-    return prev_x * self.nb, x
+  def step(self, x, prev_x=None):
+    if prev_x is None:
+      prev_x = tf.constant(0.0)
+    return prev_x * self.nb, x, prev_x
 
 class FactorySpec(TestCase):
   def setUp(self):
@@ -24,7 +24,7 @@ class FactorySpec(TestCase):
     sheet = self.sheets['Sheet1']
     factory = Factory(MultiplyBy, ([3], [5], [10]))
     x = tf.placeholder(tf.float32)
-    factory_ts, _ = factory((x, x, x))
+    factory_ts, _, _ = factory((x, x, x))
     
     with tf.Session() as sess:
       output = sess.run(factory_ts, { x: sheet['x'] })

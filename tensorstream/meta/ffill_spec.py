@@ -6,10 +6,8 @@ from tensorstream.meta.ffill import FFill
 from tensorstream.tests import TestCase
 
 class Identity(Streamable):
-  def properties(self, x):
-    return x, ()
   def step(self, x):
-    return x, ()
+    return x, (), ()
 
 class FfillWithoutStateSpec(TestCase):
   def setUp(self):
@@ -25,7 +23,7 @@ class FfillWithoutStateSpec(TestCase):
     values_ph = tf.placeholder(tf.float32)
     op = FFill(Identity())
 
-    ffill, _ = op(inputs=values_ph)
+    ffill, _, _ = op(inputs=values_ph)
 
     with tf.Session() as sess:
       output = sess.run(ffill, {
@@ -36,10 +34,10 @@ class FfillWithoutStateSpec(TestCase):
       expected.values, decimal=3)
 
 class Lag(Streamable):
-  def properties(self, x):
-    return x, tf.constant(0.0)
-  def step(self, x, last_value):
-    return last_value, x
+  def step(self, x, last_value=None):
+    if last_value is None:
+      last_value = tf.constant(0.0)
+    return last_value, x, last_value
 
 class FfillWithStateSpec(TestCase):
   def setUp(self):
@@ -55,7 +53,7 @@ class FfillWithStateSpec(TestCase):
     values_ph = tf.placeholder(tf.float32)
     op = FFill(Lag())
 
-    ffill, _ = op(values_ph)
+    ffill, _, _ = op(values_ph)
 
     with tf.Session() as sess:
       output = sess.run(ffill, {

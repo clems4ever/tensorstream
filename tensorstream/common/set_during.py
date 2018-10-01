@@ -1,7 +1,6 @@
 import tensorflow as tf
 
 from tensorstream.helpers.map_fn import map_fn
-from tensorstream.placeholder import Placeholder
 from tensorstream.streamable import MetaStreamable
 
 class SetDuring(MetaStreamable):

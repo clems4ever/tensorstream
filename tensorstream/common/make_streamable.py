@@ -1,4 +1,3 @@
-from tensorstream.placeholder import Placeholder
 from tensorstream.streamable import Streamable
 from tensorstream.helpers.map_fn import map_fn
 

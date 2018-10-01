@@ -5,26 +5,20 @@ class Compose(MetaStreamable):
     super().__init__()
     self.operators = tuple(reversed(operators))
 
-  def properties(self, *inputs_placeholders):
-    x = inputs_placeholders
-    states = []
-    for op in self.operators:
-      if isinstance(x, (tuple, list)):
-        y, init_states = op.properties(*x)
-      else:
-        y, init_states = op.properties(x)
-      states.append(init_states)
-      x = y
-    return y, tuple(states)
+  def step(self, inputs, states=None):
+    if states is None:
+      states = tuple([None] * len(self.operators))
 
-  def step(self, inputs, states):
     next_states = []
+    initial_states = []
     op_inputs = inputs
     op_states = list(zip(self.operators, states))
 
     for operator, state in op_states:
-      output, next_state = operator(inputs=op_inputs, state=state, streamable=False)
+      output, next_state, initial_state = operator(
+        inputs=op_inputs, state=state, streamable=False)
       op_inputs = output
+      initial_states.append(initial_state)
       next_states.append(next_state)
 
-    return output, tuple(next_states)
+    return output, tuple(next_states), tuple(initial_states)

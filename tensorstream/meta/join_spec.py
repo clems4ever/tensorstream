@@ -7,22 +7,18 @@ from tensorstream.streamable import Streamable
 from tensorstream.tests import TestCase
 
 class Add(Streamable):
-  def properties(self, x, y):
-    return x, ()
   def step(self, x, y):
-    return x + y, ()
+    return x + y, (), ()
 
 class Square(Streamable):
-  def properties(self, x):
-    return x, tf.constant(0.0)
-  def step(self, x, prev_x):
-    return prev_x * prev_x, x
+  def step(self, x, prev_x = None):
+    if prev_x is None:
+      prev_x = tf.constant(0.0)
+    return prev_x * prev_x, x, prev_x
 
 class Fork(Streamable):
-  def properties(self, x):
-    return (x, x), ()
   def step(self, x):
-    return (x, x), ()
+    return (x, x), (), ()
 
 class JoinSpec(TestCase):
   def setUp(self):
@@ -36,7 +32,7 @@ class JoinSpec(TestCase):
     y = tf.placeholder(tf.float32)
     z = tf.placeholder(tf.float32)
 
-    join_ts, _ = join(((x, y), z))
+    join_ts, _, _ = join(((x, y), z))
 
     with tf.Session() as sess:
       output = sess.run(join_ts, {
@@ -56,7 +52,7 @@ class JoinSpec(TestCase):
     x = tf.placeholder(tf.float32)
     y = tf.placeholder(tf.float32)
 
-    join_ts, _ = join((x, y))
+    join_ts, _, _ = join((x, y))
 
     with tf.Session() as sess:
       output = sess.run(join_ts, {

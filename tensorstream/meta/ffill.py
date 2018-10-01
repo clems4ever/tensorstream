@@ -12,42 +12,45 @@ class FFill(MetaStreamable):
     super().__init__()
     self.operator = operator
 
-  def properties(self, *inputs):
-    placeholders, init_state = self.operator.properties(*inputs)
-    zeros = map_fn(
-      placeholders,
-      [placeholders],
-      lambda p: tf.zeros(p.shape, dtype=p.dtype)
-    )
-    return placeholders, (
-      zeros, # previous output
-      init_state
-    )
+  def step(self, inputs, states=None):
+    inputs_any_zero = any_value(inputs, 0.0)
 
-  def step(self, inputs, previous_state):
-    next_output, next_state = self.operator(
+    if states is None:
+      prev_state = None
+      prev_output = None
+    else:
+      prev_output = states[0]
+      prev_state = states[1]
+
+    outputs, next_state, init_state = self.operator(
       inputs=inputs,
-      state=previous_state[1],
+      state=prev_state,
       streamable=False
     )
-    inputs_any_zero = any_value(inputs, 0.0)
+
+    if prev_state is None:
+      prev_state = init_state
+
+    if prev_output is None:
+      zero_output = map_fn(
+        outputs,
+        [outputs],
+        lambda p: tf.zeros(tf.shape(p), p.dtype)
+      )
+      prev_output = zero_output
 
     selected_outputs = tf.cond(
       inputs_any_zero,
-      lambda: previous_state[0],
-      lambda: next_output)
+      lambda: prev_output,
+      lambda: outputs)
     
-    if isinstance(inputs, (tuple, list)):
-      ph, init_state = self.operator.properties(*inputs)
-    else:
-      ph, init_state = self.operator.properties(inputs)
-
     if init_state == ():
       selected_next_state = ()
     else:
       selected_next_state = tf.cond(
         inputs_any_zero,
-        lambda: previous_state[1],
-        lambda: next_state)
+        lambda: prev_state,
+        lambda: next_state
+      )
 
-    return selected_outputs, (selected_outputs, selected_next_state)
+    return selected_outputs, (selected_outputs, selected_next_state), (prev_output, init_state)

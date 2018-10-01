@@ -7,43 +7,45 @@ from tensorstream.meta.compose import Compose
 from tensorstream.tests import TestCase
 
 class Add(Streamable):
-  def properties(self, x, y):
-    return x, ()
+  def __init__(self):
+    super().__init__()
 
   def step(self, x, y):
-    return x + y, ()
+    return x + y, (), ()
 
 class Square(Streamable):
-  def properties(self, x):
-    return x, tf.constant(0.0)
+  def __init__(self):
+    super().__init__()
 
-  def step(self, x, prev_x):
-    return prev_x * prev_x, x
+  def step(self, x, prev_x=None):
+    if prev_x is None:
+      prev_x = tf.constant(0.0)
+    return prev_x * prev_x, x, prev_x
 
 class Fork(Streamable):
-  def properties(self, x):
-    return (x, x), ()
+  def __init__(self):
+    super().__init__()
 
   def step(self, x):
-    return (x, x), ()
+    return (x, x), (), ()
 
 class ComposeSpec(TestCase):
   def setUp(self):
     self.sheets = self.read_ods(
       self.from_test_res('compose.ods', __file__))
+    self.x = tf.placeholder(tf.float32)
+    self.y = tf.placeholder(tf.float32)
 
   def test_compose_simple(self):
     sheet = self.sheets['Sheet1']
 
     op = Compose(Square(), Add())
-    x = tf.placeholder(tf.float32)
-    y = tf.placeholder(tf.float32)
-    op_ts, _ = op((x, y))
+    op_ts, _, _ = op((self.x, self.y))
 
     with tf.Session() as sess:
       output = sess.run(op_ts, {
-        x: sheet['x'],
-        y: sheet['y'],
+        self.x: sheet['x'],
+        self.y: sheet['y'],
       })
 
     np.testing.assert_almost_equal(output,
@@ -53,14 +55,12 @@ class ComposeSpec(TestCase):
     sheet = self.sheets['Sheet1']
 
     op = Compose(Fork(), Square(), Add())
-    x = tf.placeholder(tf.float32)
-    y = tf.placeholder(tf.float32)
-    op_ts, _ = op((x, y))
+    op_ts, _, _ = op((self.x, self.y))
 
     with tf.Session() as sess:
       output = sess.run(op_ts, {
-        x: sheet['x'],
-        y: sheet['y'],
+        self.x: sheet['x'],
+        self.y: sheet['y'],
       })
 
     assert(len(output) == 2)

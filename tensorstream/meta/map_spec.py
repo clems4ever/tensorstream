@@ -7,22 +7,23 @@ from tensorstream.streamable import Streamable
 from tensorstream.tests import TestCase
 
 class Square(Streamable):
-  def properties(self, x):
-    return x, tf.constant(0.0)
-  def step(self, x, prev_x):
-    return prev_x * prev_x, x
+  def step(self, x, prev_x=None):
+    if prev_x is None:
+      prev_x = tf.constant(0.0)
+    return prev_x * prev_x, x, prev_x
 
 class Fork(Streamable):
-  def properties(self, x):
-    return (x, x), tf.constant(0.0)
-  def step(self, x, prev_x):
-    return (prev_x, prev_x), x
+  def step(self, x, prev_x=None):
+    if prev_x is None:
+      prev_x = tf.constant(0.0)
+    return (prev_x, prev_x), x, prev_x
 
 class StateMultiDim(Streamable):
-  def properties(self, x):
-    return x, tf.zeros([2])
-  def step(self, x, prev_x):
-    return prev_x, tf.fill([2], x)
+  def step(self, x, prev_x=None):
+    if prev_x is None:
+      prev_x = tf.zeros([2])
+
+    return prev_x, tf.fill([2], x), prev_x
 
 class MapSpec(TestCase):
   def setUp(self):
@@ -33,7 +34,7 @@ class MapSpec(TestCase):
     sheet = self.sheets['Sheet1']
     x = tf.placeholder(tf.float32)
     v = Map(Square(), size=3)
-    o, _ = v(x)
+    o, _, _ = v(x)
 
     with tf.Session() as sess:
       output = sess.run(o, {
@@ -49,7 +50,7 @@ class MapSpec(TestCase):
     sheet = self.sheets['Sheet2']
     x = tf.placeholder(tf.float32)
     v = Map(Fork(), size=3)
-    o, _ = v(x)
+    o, _, _ = v(x)
 
     with tf.Session() as sess:
       output = sess.run(o, {
@@ -66,7 +67,7 @@ class MapSpec(TestCase):
     sheet = self.sheets['Sheet3']
     x = tf.placeholder(tf.float32)
     v = Map(StateMultiDim(), size=3)
-    o, _ = v(x)
+    o, _, _ = v(x)
 
     with tf.Session() as sess:
       output = sess.run(o, {
@@ -89,7 +90,7 @@ class MapFFillSpec(TestCase):
 
     values_ph = tf.placeholder(tf.float32)
     v = Map(FFill(Square()), size=3)
-    o, _ = v(values_ph)
+    o, _, _ = v(values_ph)
 
     with tf.Session() as sess:
       output = sess.run(o, {
