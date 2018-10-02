@@ -14,7 +14,7 @@ class BollingerBandsSpec(TestCase):
 
     values = tf.placeholder(tf.float32)
     bollinger_bands = BollingerBands(20, 2)
-    bb_ts, _ = bollinger_bands(values)
+    bb_ts, _, _ = bollinger_bands(values)
 
     with tf.Session() as sess:
       output = sess.run(bb_ts, {

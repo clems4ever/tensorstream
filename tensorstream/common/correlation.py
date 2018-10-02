@@ -53,15 +53,6 @@ class CrossCorrelation(Streamable):
     self.correlation = Correlation(period)
     self.lag = lag
 
-  def properties(self, v1, v2):
-    shape = self.concat([self.lag], v1.shape)
-    corr_dtype, corr_init_state = self.correlation.properties(v1, v2)
-    return corr_dtype, (
-      tf.constant(0),
-      corr_init_state,
-      tf.zeros(shape, dtype=v1.dtype)
-    )
-
   def step(self, value1, value2, iteration=None,
     prev_correlation_state=None, last_lag_buffer=None):
     """

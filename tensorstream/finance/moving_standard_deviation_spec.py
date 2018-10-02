@@ -13,7 +13,7 @@ class MovingStandardDeviationSpec(TestCase):
   def test_moving_standard_deviation_single_dim(self):
     volatility = MovingStandardDeviation(10)
     values = tf.placeholder(tf.float32)
-    volatility_ts, _ = volatility(values)
+    volatility_ts, _, _ = volatility(values)
 
     inputs = self.sheets['Sheet1']
 

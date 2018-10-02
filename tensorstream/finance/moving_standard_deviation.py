@@ -8,24 +8,21 @@ class MovingStandardDeviation(Streamable):
     super().__init__()
     self.period = period
 
-  def properties(self, value):
-    shape = self.concat([self.period], value.shape)
-    return value, (
-      tf.zeros(shape, dtype=value.dtype),
-      tf.constant(0)
-    )
+  def step(self, value, iteration=None, prev_buffer=None):
+    if iteration is None:
+      iteration = tf.constant(0)
+    if prev_buffer is None:
+      shape = self.concat([self.period], tf.shape(value))
+      prev_buffer = tf.zeros(shape, value.dtype)
 
-  def step(self, value, previous_last_values, iteration):
-    next_last_values = roll(value, previous_last_values)
+    next_buffer = roll(value, prev_buffer)
 
-    def compute_volatility():
-      _, var = tf.nn.moments(next_last_values, axes=[0])
-      return tf.sqrt(var)
+    _, var = tf.nn.moments(next_buffer, axes=[0])
+    sqrt_var = tf.sqrt(var)
 
     volatility = tf.cond(
       iteration < self.period - 1,
       lambda: tf.zeros(tf.shape(value), dtype=value.dtype),
-      compute_volatility
+      lambda: sqrt_var
     )
-
-    return volatility, (next_last_values, iteration + 1)
+    return volatility, (iteration + 1, next_buffer), (iteration, prev_buffer)

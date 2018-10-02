@@ -9,6 +9,6 @@ def MovingAverageConvergenceDivergenceSignal(slow, fast, macd):
   return Compose(
     SetDuring(tf.constant(0), slow + macd - 2),
     ZeroCrossoverSignal(),
-    Select(4, dtype=tf.float32, shape=()),
+    Select(4),
     MACD(slow=slow, fast=fast, macd=macd)
   )

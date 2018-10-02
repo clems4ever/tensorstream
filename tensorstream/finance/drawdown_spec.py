@@ -13,7 +13,7 @@ class AverageTrueRangeSpec(TestCase):
     drawdown = Drawdown()
     values = tf.placeholder(tf.float32)
 
-    drawdown_ts, _ = drawdown(values)
+    drawdown_ts, _, _ = drawdown(values)
 
     with tf.Session() as sess:
       output = sess.run(drawdown_ts, {
@@ -35,7 +35,7 @@ class AverageTrueRangeSpec(TestCase):
     drawdown_op = Drawdown()
     values = tf.placeholder(tf.float32)
 
-    (drawdown, drawdown_days), _ = drawdown_op(values)
+    (drawdown, drawdown_days), _, _ = drawdown_op(values)
     mean_drawdown, mean_drawdown_days = avg(drawdown, drawdown_days)
 
     with tf.Session() as sess:

@@ -17,7 +17,7 @@ class RiskRatioEvaluatorSpec(TestCase):
     high_prices = tf.placeholder(tf.float32)
     signals = tf.placeholder(tf.float32)
 
-    evaluator_ts, _ = evaluator(
+    evaluator_ts, _, _ = evaluator(
       inputs=(low_prices, high_prices, close_prices, signals)
     )
 
@@ -49,7 +49,7 @@ class RiskRatioEvaluatorSpec(TestCase):
     high_prices = tf.placeholder(tf.float32)
     signals = tf.placeholder(tf.float32)
 
-    evaluator_ts, _ = evaluator(
+    evaluator_ts, _, _ = evaluator(
       inputs=(low_prices, high_prices, close_prices, signals)
     )
 

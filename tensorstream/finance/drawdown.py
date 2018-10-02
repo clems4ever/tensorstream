@@ -1,16 +1,17 @@
 import tensorflow as tf
 
-from tensorstream.placeholder import Placeholder
 from tensorstream.streamable import Streamable
 from tensorstream.common import filter_with_mask, map_consecutive_fn
 
 ERROR = 0.0001
 
 class Drawdown(Streamable):
-  def properties(self, value):
-    return (value, Placeholder(tf.int32, ())), (tf.constant(0.0), tf.constant(0))
+  def step(self, value, last_peak=None, last_periods_under_water=None):
+    if last_peak is None:
+      last_peak = tf.constant(0.0)
+    if last_periods_under_water is None:
+      last_periods_under_water = tf.constant(0)
 
-  def step(self, value, last_peak, last_periods_under_water):
     new_peak = tf.maximum(value, last_peak)
     new_periods_under_water = tf.cond(tf.abs(new_peak - last_peak) > ERROR,
       lambda: 0,
@@ -18,7 +19,13 @@ class Drawdown(Streamable):
     drawdown = tf.cond(tf.abs(last_peak) < ERROR,
       lambda: 0.0,
       lambda: tf.minimum(0.0, value / last_peak - 1.0))
-    return (drawdown, new_periods_under_water), (new_peak, new_periods_under_water)
+    return (
+      drawdown, new_periods_under_water
+    ), (
+      new_peak, new_periods_under_water
+    ), (
+      last_peak, last_periods_under_water
+    )
     
 
 def details(drawdown, drawdown_days):

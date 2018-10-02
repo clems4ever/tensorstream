@@ -22,7 +22,7 @@ class MACDSpec(TestCase):
  
     macd_26_12_9 = MACD(26, 12, 9)
     prices = tf.placeholder(tf.float32)
-    macd_ts, _ = macd_26_12_9(prices)
+    macd_ts, _, _ = macd_26_12_9(prices)
 
     with tf.Session() as sess:
       output_ts = sess.run(macd_ts, {

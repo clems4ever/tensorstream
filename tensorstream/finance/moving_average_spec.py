@@ -17,8 +17,8 @@ class SimpleMovingAveragesSpec(TestCase):
     sma10 = SimpleMovingAverage(10)
 
     prices = tf.placeholder(tf.float32)
-    sma4_ts, _ = sma4(prices)
-    sma10_ts, _ = sma10(prices)
+    sma4_ts, _, _ = sma4(prices)
+    sma10_ts, _, _ = sma10(prices)
     single_dim_ts = self.sheets['Sheet1']
     
     with tf.Session() as sess:
@@ -41,7 +41,7 @@ class ExponentialMovingAverageSpec(TestCase):
     prices = tf.placeholder(tf.float32)
 
     ema10 = ExponentialMovingAverage(10)
-    ema10_ts, _ = ema10(prices)
+    ema10_ts, _, _ = ema10(prices)
     
     with tf.Session() as sess:
       output = sess.run(ema10_ts, {prices: s['Close']})
@@ -58,7 +58,7 @@ class RollingMovingAverageSpec(TestCase):
     s = self.sheets['Sheet1']
     rma10 = RollingMovingAverage(10)
     values = tf.placeholder(tf.float32)
-    rma10_ts, _ = rma10(values)
+    rma10_ts, _, _ = rma10(values)
     
     with tf.Session() as sess:
       output = sess.run(rma10_ts, {

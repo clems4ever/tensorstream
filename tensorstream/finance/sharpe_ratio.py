@@ -8,15 +8,14 @@ class SharpeRatio(Streamable):
     super().__init__()
     self.period = period
 
-  def properties(self, return_, risk_free_rate):
-    shape = self.concat([self.period], return_.shape)
-    return return_, (
-      tf.zeros(shape, return_.dtype),
-      tf.constant(0)
-    )
-
   def step(self, return_, risk_free_rate,
-    last_adjusted_values, iteration):
+    last_adjusted_values=None, iteration=None):
+    if iteration is None:
+      iteration = tf.constant(0)
+    if last_adjusted_values is None:
+      shape = self.concat([self.period], tf.shape(return_))
+      last_adjusted_values = tf.zeros(shape, return_.dtype)
+
     def compute_sharpe_ratio(adjusted_values):
       mean, var = tf.nn.moments(adjusted_values, axes=0)
       stddev = tf.sqrt(var)
@@ -32,4 +31,4 @@ class SharpeRatio(Streamable):
       lambda: compute_sharpe_ratio(new_adjusted_values[0:iteration + 1]),
       lambda: compute_sharpe_ratio(new_adjusted_values))
 
-    return sharpe_ratio, (new_adjusted_values, iteration + 1)
+    return sharpe_ratio, (new_adjusted_values, iteration + 1), (last_adjusted_values, iteration)

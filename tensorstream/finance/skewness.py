@@ -8,15 +8,14 @@ class Skewness(Streamable):
     super().__init__()
     self.period = period
 
-  def properties(self, return_):
-    shape = self.concat([self.period], return_.shape)
-    return return_, (
-      tf.zeros(shape, dtype=return_.dtype),
-      tf.constant(0)
-    )
-
   def step(self, return_,
-    last_returns, iteration):
+    last_returns=None, iteration=None):
+    if iteration is None:
+      iteration = tf.constant(0)
+    if last_returns is None:
+      shape = self.concat([self.period], tf.shape(return_))
+      last_returns = tf.zeros(shape, return_.dtype)
+
     def compute_skewness(values):
       mean_x, var_x = tf.nn.moments(values, axes=0)
       stddev_x = tf.sqrt(var_x)
@@ -35,4 +34,4 @@ class Skewness(Streamable):
       lambda: compute_skewness(new_returns[0:iteration + 1]),
       lambda: compute_skewness(new_returns))
 
-    return skewness, (new_returns, iteration + 1)
+    return skewness, (new_returns, iteration + 1), (last_returns, iteration)

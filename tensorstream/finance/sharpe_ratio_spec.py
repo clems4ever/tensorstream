@@ -14,7 +14,7 @@ class SharpeRatioSpec(TestCase):
     sr10 = SharpeRatio(10)
     prices = tf.placeholder(tf.float32)
     risk_free_rates = tf.placeholder(tf.float32)
-    sr10_ts, _ = sr10(inputs=(prices, risk_free_rates))
+    sr10_ts, _, _= sr10(inputs=(prices, risk_free_rates))
     
     with tf.Session() as sess:
       output = sess.run(sr10_ts, {

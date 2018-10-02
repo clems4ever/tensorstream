@@ -13,7 +13,7 @@ class SkewnessSpec(TestCase):
     s = self.sheets['Sheet1']
     s10 = Skewness(10)
     prices = tf.placeholder(tf.float32)
-    s10_ts, _ = s10(prices)
+    s10_ts, _, _ = s10(prices)
     
     with tf.Session() as sess:
       output = sess.run(s10_ts, {

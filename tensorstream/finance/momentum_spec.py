@@ -10,7 +10,7 @@ class MomentumSpec(TestCase):
 
   def test_momentum_single_dim(self):
     values = tf.placeholder(tf.float32)
-    momentum_ts, _ = Momentum(5)(values)
+    momentum_ts, _, _ = Momentum(5)(values)
 
     input_ts = self.sheets['Sheet1']
 

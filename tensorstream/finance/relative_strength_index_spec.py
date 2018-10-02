@@ -13,7 +13,7 @@ class RelativeStrengthIndexSpec(TestCase):
     sheet = self.sheets['relative_strength_index']
     rsi = RelativeStrengthIndex(14)
     values = tf.placeholder(tf.float32)
-    rsi_ts, _ = rsi(values)
+    rsi_ts, _, _ = rsi(values)
 
     with tf.Session() as sess:
       output = sess.run(rsi_ts, {

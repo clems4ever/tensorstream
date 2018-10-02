@@ -12,7 +12,7 @@ class VolatilitySpec(TestCase):
   def test_volatility(self):
     volatility = Volatility(5)
     values = tf.placeholder(tf.float32)
-    volatility_ts, _ = volatility(values)
+    volatility_ts, _, _ = volatility(values)
 
     inputs = self.sheets['Sheet1']
 

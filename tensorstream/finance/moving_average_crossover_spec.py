@@ -15,7 +15,7 @@ class MovingAverageCrossoverSpec(TestCase):
     close_prices = tf.placeholder(tf.float32)
     sheet = self.sheets['Sheet1']
 
-    ma_crossover_ts, _ = ma_crossover(close_prices)
+    ma_crossover_ts, _, _ = ma_crossover(close_prices)
     with tf.Session() as sess:
       output = sess.run(ma_crossover_ts, {
         close_prices: sheet['Close']

@@ -9,19 +9,18 @@ class Supertrend(Streamable):
     self.factor = factor
     self.atr = AverageTrueRange(atr_period)
 
-  def properties(self, close_price, low_price, high_price):
-    atr_ph, atr_init_state = self.atr.properties(close_price, low_price, high_price)
-    return close_price, (
-      atr_init_state,
-      tf.constant(0.0),
-      tf.constant(0.0),
-      tf.constant(0.0),
-      tf.constant(0)
-    )
-
   def step(self, close_price, low_price, high_price, 
-    atr_state, last_close, last_trend_down,
-    last_trend_up, last_trend):
+    prev_atr_state=None, last_close=None, last_trend_down=None,
+    last_trend_up=None, last_trend=None):
+
+    if last_close is None:
+      last_close = tf.constant(0.0)
+    if last_trend_down is None:
+      last_trend_down = tf.constant(0.0)
+    if last_trend_up is None:
+      last_trend_up = tf.constant(0.0)
+    if last_trend is None:
+      last_trend = tf.constant(0)
 
     def default(atr):
       hl2 = (high_price + low_price) / 2.0
@@ -57,9 +56,9 @@ class Supertrend(Streamable):
     def warmup():
       return 0.0, 0.0, 0, 0.0
     
-    atr, atr_state = self.atr(
+    atr, next_atr_state, atr_init = self.atr(
       inputs=(close_price, low_price, high_price),
-      state=atr_state,
+      state=prev_atr_state,
       streamable=False
     )
 
@@ -70,9 +69,15 @@ class Supertrend(Streamable):
     )
 
     return supertrend, (
-      atr_state,
+      next_atr_state,
       close_price,
       trend_down,
       trend_up,
       trend
+    ), (
+      atr_init,
+      last_close,
+      last_trend_down,
+      last_trend_up,
+      last_trend
     )

@@ -9,15 +9,12 @@ class AverageTrueRange(Streamable):
     self.period = period
     self.rma = RollingMovingAverage(period)
 
-  def properties(self, close_price, low_price, high_price):
-    rma_ph, rma_init_state = self.rma.properties(close_price)
-    return rma_ph, (
-      tf.zeros(close_price.shape, dtype=close_price.dtype),
-      rma_init_state
-    )
-
   def step(self, close_price, low_price, high_price,
-    last_close, last_rma_state):
+    last_close=None, last_rma_state=None):
+
+    if last_close is None:
+      last_close = tf.zeros(tf.shape(close_price), close_price.dtype)
+
     hl = high_price - low_price
     hcp = tf.where(
       tf.equal(last_close, 0),
@@ -31,5 +28,5 @@ class AverageTrueRange(Streamable):
     )
     tr = tf.reduce_max(tf.stack([hl, hcp, lcp]))
 
-    atr, new_rma_state = self.rma(tr, state=last_rma_state, streamable=False)
-    return atr, (close_price, new_rma_state)
+    atr, new_rma_state, rma_init_state = self.rma(tr, state=last_rma_state, streamable=False)
+    return atr, (close_price, new_rma_state), (last_close, rma_init_state)

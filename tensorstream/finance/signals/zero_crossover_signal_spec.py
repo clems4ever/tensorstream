@@ -14,7 +14,7 @@ class ZeroCrossoverSignalSpec(TestCase):
     s = self.sheets['Sheet1']
     trade_signal = ZeroCrossoverSignal()
     histograms = tf.placeholder(tf.float32)
-    trade_signal_ts, _ = trade_signal(histograms)
+    trade_signal_ts, _, _ = trade_signal(histograms)
 
     with tf.Session() as sess:
       output = sess.run(trade_signal_ts, {

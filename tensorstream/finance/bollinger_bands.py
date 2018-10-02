@@ -9,20 +9,12 @@ class BollingerBands(Streamable):
     self.sma = SimpleMovingAverage(n)
     self.msd = MovingStandardDeviation(n)
 
-  def properties(self, value):
-    msd_ph, msd_init_state = self.msd.properties(value)
-    sma_ph, sma_init_state = self.sma.properties(value)
-    return (value, value, value), ( 
-      msd_init_state,
-      sma_init_state
-    )
+  def step(self, value, prev_volatility_state=None, prev_sma_state=None):
+    sma_output, next_sma_state, sma_init = self.sma(
+      value, state=prev_sma_state, streamable=False)
 
-  def step(self, value, volatility_state, sma_state):
-    sma_output, sma_state = self.sma(
-      value, state=sma_state, streamable=False)
-
-    volatility_output, volatility_state = self.msd(
-      value, state=volatility_state, streamable=False)
+    volatility_output, next_volatility_state, volatility_init = self.msd(
+      value, state=prev_volatility_state, streamable=False)
 
     middle_band = sma_output
     lower_band = sma_output - volatility_output * self.k
@@ -32,6 +24,9 @@ class BollingerBands(Streamable):
       middle_band,
       upper_band
     ), (
-      volatility_state,
-      sma_state
+      next_volatility_state,
+      next_sma_state
+    ), (
+      volatility_init,
+      sma_init
     )

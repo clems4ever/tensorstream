@@ -1,7 +1,6 @@
 import tensorflow as tf
 
 from tensorstream.finance.moving_average import ExponentialMovingAverage
-from tensorstream.placeholder import Placeholder
 from tensorstream.streamable import Streamable
 
 class MovingAverageConvergenceDivergence(Streamable):
@@ -14,19 +13,6 @@ class MovingAverageConvergenceDivergence(Streamable):
     self.ema_fast = ExponentialMovingAverage(fast)
     self.ema_macd = ExponentialMovingAverage(macd)
 
-  def properties(self, value):
-    ema_slow_ph, ema_slow_init_state = self.ema_slow.properties(value)
-    ema_fast_ph, ema_fast_init_state = self.ema_fast.properties(value)
-    ema_macd_ph, ema_macd_init_state = self.ema_macd.properties(value)
-
-    ph = Placeholder(value.dtype, value.shape)
-    return (ph,) * 5, (
-      tf.constant(0),
-      ema_slow_init_state,
-      ema_fast_init_state,
-      ema_macd_init_state
-    )
-
   def _diff(self, value1, value2, iteration,
     starting_iteration):
     return tf.cond(
@@ -34,21 +20,30 @@ class MovingAverageConvergenceDivergence(Streamable):
       lambda: tf.zeros(tf.shape(value1), dtype=value1.dtype),
       lambda: value1 - value2)
 
-  def step(self, value, iteration, ema_slow_state,
-    ema_fast_state, ema_macd_state):
+  def step(self, value, iteration=None, ema_slow_state=None,
+    ema_fast_state=None, ema_macd_state=None):
 
-    ema_slow, new_ema_slow_state = self.ema_slow(
+    if iteration is None:
+      iteration = tf.constant(0)
+
+    ema_slow, new_ema_slow_state, ema_slow_init = self.ema_slow(
       value, state=ema_slow_state, streamable=False)
-    ema_fast, new_ema_fast_state = self.ema_fast(
+    ema_fast, new_ema_fast_state, ema_fast_init = self.ema_fast(
       value, state=ema_fast_state, streamable=False)
 
     macd = self._diff(
       ema_fast, ema_slow, iteration, self.slow_period - 1)
 
+    ema_macd, new_ema_macd_state, ema_macd_init = self.ema_macd(
+      macd, state=ema_macd_state, streamable=False)
+
+    if ema_macd_state is None:
+      ema_macd_state = ema_macd_init
+
     signal, new_ema_macd_state = tf.cond(
       iteration < self.slow_period - 1,
       lambda: (tf.zeros(tf.shape(value), dtype=value.dtype), ema_macd_state),
-      lambda: self.ema_macd(macd, state=ema_macd_state, streamable=False)
+      lambda: (ema_macd, new_ema_macd_state)
     )
 
     histogram = self._diff(macd, signal, iteration, 
@@ -65,6 +60,11 @@ class MovingAverageConvergenceDivergence(Streamable):
       new_ema_slow_state,
       new_ema_fast_state,
       new_ema_macd_state
+    ), (
+      iteration,
+      ema_slow_init,
+      ema_fast_init,
+      ema_macd_init
     )
 
 

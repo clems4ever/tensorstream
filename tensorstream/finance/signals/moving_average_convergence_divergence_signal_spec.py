@@ -18,7 +18,7 @@ class MACDSignalSpec(TestCase):
  
     signal = MACDSignal(26, 12, 9)
     prices = tf.placeholder(tf.float32)
-    signals_ts, _ = signal(prices)
+    signals_ts, _, _ = signal(prices)
 
     with tf.Session() as sess:
       output_ts = sess.run(signals_ts, {

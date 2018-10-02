@@ -17,8 +17,7 @@ class HeikinAshiSpec(TestCase):
     low_p = tf.placeholder(tf.float32)
     high_p = tf.placeholder(tf.float32)
 
-    heikinashi_ts, _ = heikinashi_op(inputs=(open_p, high_p, low_p, close_p))
-    print(heikinashi_ts)
+    heikinashi_ts, _, _ = heikinashi_op(inputs=(open_p, high_p, low_p, close_p))
   
     data = { 
               open_p  : self.input_ts["open"],

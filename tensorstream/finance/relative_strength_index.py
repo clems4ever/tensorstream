@@ -9,17 +9,21 @@ class RelativeStrengthIndex(Streamable):
     self.period = period
     self.buffer = Lag(period)
 
-  def properties(self, value):
-    buffer_ph, buffer_init_state = self.buffer.properties(value)
-    return value, (
-      buffer_init_state,
-      tf.constant(0), # iteration
-      tf.constant(0.0), # average gain
-      tf.constant(0.0) # average loss
-    )
+  def step(self, value, iteration=None, buffer_state=None,
+    last_average_gain=None, last_average_loss=None):
 
-  def step(self, value, buffer_state,
-    iteration, last_average_gain, last_average_loss):
+    if iteration is None:
+      iteration = tf.constant(0)
+    if last_average_gain is None:
+      last_average_gain = tf.constant(0.0)
+    if last_average_loss is None:
+      last_average_loss = tf.constant(0.0)
+
+    _, next_buffer_state, buffer_init = self.buffer(
+     value, state=buffer_state, streamable=False)
+
+    if buffer_state is None:
+      buffer_state = buffer_init
 
     def compute_default_gain_loss():
       current_gain_or_loss = value - buffer_state[0]
@@ -67,11 +71,15 @@ class RelativeStrengthIndex(Streamable):
       (tf.less(iteration, self.period), warmup),
     ), exclusive=True, default=compute_default_rsi)
 
-    _, buffer_state = self.buffer(value, state=buffer_state, streamable=False)
 
     return rsi, (
-      buffer_state,
       iteration + 1,
+      next_buffer_state,
       new_average_gain,
       new_average_loss
+    ), (
+      iteration,
+      buffer_init,
+      last_average_gain,
+      last_average_loss
     )

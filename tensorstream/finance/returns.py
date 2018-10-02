@@ -8,14 +8,13 @@ class Return(Streamable):
     super().__init__()
     self.period = period
 
-  def properties(self, value):
-    shape = self.concat([self.period], value.shape)
-    return value, (
-      tf.constant(0),
-      tf.zeros(shape, dtype=value.dtype)
-    )
+  def step(self, value, iteration=None, prev_buffer=None):
+    if iteration is None:
+      iteration = tf.constant(0)
+    if prev_buffer is None:
+      shape = self.concat([self.period], tf.shape(value))
+      prev_buffer = tf.zeros(shape, value.dtype)
 
-  def step(self, value, iteration, prev_buffer):
     prev_value = prev_buffer[self.period - 1]
     next_buffer = roll(value, prev_buffer)
 
@@ -27,21 +26,20 @@ class Return(Streamable):
       lambda: tf.zeros(tf.shape(value), dtype=value.dtype),
       lambda: tf.divide(value, prev_value) - tf.constant(1.0)
     )
-    return return_, (iteration + 1, next_buffer)
+    return return_, (iteration + 1, next_buffer), (iteration, prev_buffer)
 
 class LogarithmicReturn(Streamable):
   def __init__(self, period):
     super().__init__()
     self.period = period
 
-  def properties(self, value):
-    shape = self.concat([self.period], value.shape)
-    return value, (
-      tf.constant(0),
-      tf.zeros(shape, dtype=value.dtype)
-    )
+  def step(self, value, iteration=None, prev_buffer=None):
+    if iteration is None:
+      iteration = tf.constant(0)
+    if prev_buffer is None:
+      shape = self.concat([self.period], tf.shape(value))
+      prev_buffer = tf.zeros(shape, value.dtype)
 
-  def step(self, value, iteration, prev_buffer):
     prev_value = prev_buffer[self.period - 1]
     next_buffer = roll(value, prev_buffer)
 
@@ -53,4 +51,4 @@ class LogarithmicReturn(Streamable):
       lambda: tf.zeros(tf.shape(value), dtype=value.dtype),
       lambda: tf.log(tf.divide(value, prev_value))
     )
-    return return_, (iteration + 1, next_buffer)
+    return return_, (iteration + 1, next_buffer), (iteration, prev_buffer)

@@ -8,7 +8,7 @@ from tensorstream.meta.join import Join
 
 def SimpleMovingAverageCrossover(slow, fast):
   return Compose(
-    Sub(tf.float32),
+    Sub(),
     Join(
       Compose(
         # We want 0.0 until index 'slow-1' of the timeseries
@@ -17,5 +17,5 @@ def SimpleMovingAverageCrossover(slow, fast):
       ),
       SimpleMovingAverage(slow)
     ),
-    Fork(2, tf.float32)
+    Fork(2)
   )

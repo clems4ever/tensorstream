@@ -13,7 +13,7 @@ class ReturnSpec(TestCase):
     prices = tf.placeholder(tf.float32)
     return_ = Return(5)
 
-    return_ts, _ = return_(prices)
+    return_ts, _, _ = return_(prices)
     
     with tf.Session() as sess:
       output = sess.run(return_ts, {
@@ -32,7 +32,7 @@ class LogarithmicReturnSpec(TestCase):
     single_dim_ts = self.sheets['Sheet1']
     prices = tf.placeholder(tf.float32)
     log_return = LogarithmicReturn(5)
-    log_return_ts, _ = log_return(prices)
+    log_return_ts, _, _ = log_return(prices)
     
     with tf.Session() as sess:
       output = sess.run(log_return_ts, {

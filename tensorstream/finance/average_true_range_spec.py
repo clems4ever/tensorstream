@@ -17,12 +17,8 @@ class AverageTrueRangeSpec(TestCase):
     low_prices = tf.placeholder(tf.float32)
     high_prices = tf.placeholder(tf.float32)
 
-    atr_ts, _ = atr(
-      (
-        close_prices,
-        low_prices,
-        high_prices
-      )
+    atr_ts, _, _ = atr(
+      (close_prices, low_prices, high_prices)
     )
     
     with tf.Session() as sess:

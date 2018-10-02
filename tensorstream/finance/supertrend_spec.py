@@ -17,7 +17,7 @@ class SupertrendSpec(TestCase):
     low_prices = tf.placeholder(tf.float32)
     high_prices = tf.placeholder(tf.float32)
 
-    supertrend_ts, _ = supertrend(
+    supertrend_ts, _, _ = supertrend(
       inputs=(close_prices, low_prices, high_prices)
     )
 
