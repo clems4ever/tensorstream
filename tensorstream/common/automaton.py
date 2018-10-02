@@ -7,10 +7,10 @@ class Automaton(MetaStreamable):
     self.init_state = init_state
     self.default_action = default_action
 
-  def initial_state(self, *inputs):
-    return self.init_state
+  def step(self, inputs, prev_state=None):
+    if prev_state is None:
+      prev_state = tf.convert_to_tensor(self.init_state)
 
-  def step(self, inputs, prev_state):
     cases = []
     for t in self.transitions:
       cond = tf.logical_and(
@@ -23,6 +23,8 @@ class Automaton(MetaStreamable):
 
     def_value = self.default_action(*inputs)
 
-    return tf.case(
+    action, next_state = tf.case(
       cases, default=lambda: (def_value, prev_state)
     )
+
+    return action, next_state, prev_state

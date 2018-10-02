@@ -76,6 +76,11 @@ class Streamable:
     return (outputs, state_f, initial_state)
 
   def __call__(self, inputs, state=None, streamable=True):
+    # Preprocessing to convert python literals into tensors.
+    inputs = map_fn(inputs, [inputs], lambda x: tf.convert_to_tensor(x))
+    if not state is None:
+      state = map_fn(state, [state], lambda x: tf.convert_to_tensor(x))
+
     if streamable:
       return self.call_streamed(inputs, state)
     else:
@@ -85,7 +90,7 @@ class Streamable:
     """
     Where the internals of the operator must be implemented.
     """
-    raise Exception("Not implemented")
+    raise Exception("Not implemented.")
 
   def forward_step(self, inputs, state):
     if not isinstance(inputs, (tuple, list)):
@@ -107,7 +112,6 @@ class Streamable:
     elif v2 == ():
       return v1
     return tf.concat([v1, v2], axis=0)
-
 
 class MetaStreamable(Streamable):
   def forward_step(self, inputs, state):
