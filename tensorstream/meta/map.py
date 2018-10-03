@@ -14,9 +14,10 @@ class Map(MetaStreamable):
       dim = tf.ones([tf.size(tf.shape(x))], dtype=tf.int32)
       return tf.concat([[self.size], dim], axis=0)
 
+    inputs_0 = map_fn(inputs, [inputs], lambda i: i[0])
     # Run the model without state to get the dtype
     op_value, next_state, init_state = self.operator(
-      inputs[0], streamable=False)
+      inputs_0, streamable=False)
 
     if states is None:
       extended_init_state = map_fn(init_state, [init_state],

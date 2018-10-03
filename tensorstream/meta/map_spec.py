@@ -22,8 +22,15 @@ class StateMultiDim(Streamable):
   def step(self, x, prev_x=None):
     if prev_x is None:
       prev_x = tf.zeros([2])
-
     return prev_x, tf.fill([2], x), prev_x
+
+class Add(Streamable):
+  def step(self, x, y):
+    if x.get_shape() != ():
+      raise Exception("Shape of x must be ().")
+    if y.get_shape() != ():
+      raise Exception("Shape of y must be ().")
+    return tf.reduce_sum([x, y]), (), ()
 
 class MapSpec(TestCase):
   def setUp(self):
@@ -76,6 +83,24 @@ class MapSpec(TestCase):
 
     expected = sheet[['y0', 'y1', 'y2', 'y3', 'y4', 'y5']].values
     expected = np.reshape(expected, (12, 3, 2))
+    np.testing.assert_almost_equal(output,
+      expected, decimal=3)
+
+  def test_map_multi_inputs(self):
+    sheet = self.sheets['Sheet5']
+    x = tf.placeholder(tf.float32, (None, 3))
+    y = tf.placeholder(tf.float32, (None, 3))
+    v = Map(Add(), size=3)
+    o, _, _ = v((x, y))
+
+    with tf.Session() as sess:
+      output = sess.run(o, {
+        x: sheet[['x0', 'x1', 'x2']],
+        y: sheet[['y0', 'y1', 'y2']]
+      })
+
+    expected = sheet[['z0', 'z1', 'z2']].values
+    expected = np.reshape(expected, (12, 3))
     np.testing.assert_almost_equal(output,
       expected, decimal=3)
 
