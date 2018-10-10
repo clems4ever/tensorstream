@@ -34,13 +34,13 @@ class HeikinAshi(Streamable):
     ha_low_price = tf.cond(tf.equal(prev_open_price, 0),
                           lambda : low_price,
                           lambda : tf.reduce_min(
-                            tf.stack([low_price, close_price, open_price]))
+                            tf.stack([low_price, ha_close_price, ha_open_price]))
                           )
 
     ha_high_price = tf.cond(tf.equal(prev_open_price, 0),
                             lambda : high_price,
                             lambda : tf.reduce_max(
-                              tf.stack([high_price, close_price, open_price]))
+                              tf.stack([high_price, ha_close_price, ha_open_price]))
                             )
 
     new_value = (ha_open_price, ha_high_price, ha_low_price, ha_close_price)
