@@ -15,11 +15,11 @@ node {
     try {
     sh """
 #Create and enable venv
-virtualenv -p python3.5 .venv
-. .venv/bin/activate
+source activate trading
 
 # Install dev dependencies
-pip3 install -e '.[dev]'
+python setup.py install
+pip install -r requirements.txt
 
 # Run the tests
 pytest
