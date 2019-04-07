@@ -1,2 +1,0 @@
-pytest==3.8.0
-pyexcel-ods==0.5.3
