@@ -5,7 +5,7 @@ setup(
   version='0.0.4',
   author='Clement Michaud',
   author_email='clement.michaud34@gmail.com',
-  license='All rights reserved to Clement Michaud',
+  license='Apache 2.0',
 
   packages=find_packages(exclude=['*_spec.py']),
   long_description=open('README.md').read(),
