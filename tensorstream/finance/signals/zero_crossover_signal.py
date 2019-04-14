@@ -2,33 +2,45 @@ import tensorflow as tf
 
 from tensorstream.streamable import Streamable
 
+
+def sign(x):
+    return tf.where(
+        tf.greater_equal(tf.sign(x), tf.zeros(tf.shape(x))),
+        tf.fill(tf.shape(x), 1.0),
+        tf.fill(tf.shape(x), -1.0),
+    )
+
+
 class ZeroCrossoverSignal(Streamable):
-  def __init__(self):
-    super().__init__()
+    def __init__(self):
+        super().__init__()
 
-  def step(self, value, is_warmup=None, last_value=None):
-    if is_warmup is None:
-      is_warmup = tf.constant(True)
-    if last_value is None:
-      last_value = tf.zeros(tf.shape(value), value.dtype)
+    def step(self, value, is_warmup=None, previous_direction=None):
+        zeros = tf.zeros(tf.shape(value), dtype=value.dtype)
 
-    zeros_i = tf.zeros(tf.shape(value), dtype=tf.int32)
-    zeros = tf.zeros(tf.shape(value), dtype=value.dtype)
+        if is_warmup is None:
+            is_warmup = tf.constant(True)
+        if previous_direction is None:
+            previous_direction = zeros
 
-    def warmup():
-      return zeros_i
+        def warmup():
+            return (zeros, sign(value))
 
-    def nominal():
-      is_zero_crossed = tf.less(tf.sign(value * last_value), zeros)
-      set_signal = tf.to_int32(tf.sign(value - last_value))
-      return tf.where(
-        tf.logical_and(
-          is_zero_crossed,
-          tf.logical_not(tf.equal(last_value, 0))
-        ),
-        set_signal,
-        zeros_i
-      )
+        def nominal():
+            is_zero_crossed = tf.logical_and(
+                tf.less(sign(value * previous_direction), zeros),
+                tf.logical_not(tf.equal(value, zeros)),
+            )
+            negative_direction = tf.negative(previous_direction)
+            next_signal = tf.where(is_zero_crossed, negative_direction, zeros)
+            next_direction = tf.where(
+                is_zero_crossed, negative_direction, previous_direction
+            )
+            return next_signal, next_direction
 
-    new_signal = tf.cond(is_warmup, warmup, nominal)
-    return new_signal, (tf.constant(False), value), (is_warmup, last_value)
+        next_signal, next_direction = tf.cond(is_warmup, warmup, nominal)
+        return (
+            tf.cast(next_signal, tf.int32),
+            (tf.constant(False), next_direction),
+            (is_warmup, previous_direction),
+        )
